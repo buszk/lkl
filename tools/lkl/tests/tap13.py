@@ -163,7 +163,7 @@ class Parser(object):
     def parse(self, source):
         # to avoid input buffering
         while True:
-            line = source.readline()
+            line = source.readline().decode('utf-8')
             if not line:
                 break
 
