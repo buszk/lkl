@@ -55,6 +55,7 @@ void unregister_iomem(void *base)
 
 void *lkl_ioremap(long addr, int size)
 {
+	lkl_printf("%s 0x%016lx[0x%08x]\n", __func__, addr, size);
 	int index = IOMEM_ADDR_TO_INDEX(addr);
 	struct iomem_region *iomem = &iomem_regions[index];
 

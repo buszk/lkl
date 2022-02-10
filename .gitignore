@@ -145,3 +145,9 @@ x509.genkey
 
 # Clang's compilation database file
 /compile_commands.json
+
+
+tools/lkl/tests/disk-vfio-pci
+tools/lkl/tests/virt-pci
+*.log
+
