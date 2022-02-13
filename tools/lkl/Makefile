@@ -3,8 +3,8 @@
 # also do not print "Entering directory..." messages from make
 .SUFFIXES:
 MAKEFLAGS += -r --no-print-directory
-
 KCONFIG?=defconfig
+LDLIBS=-lcapstone
 
 ifneq ($(silent),1)
   ifneq ($(V),1)

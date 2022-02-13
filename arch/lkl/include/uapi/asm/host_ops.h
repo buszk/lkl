@@ -39,9 +39,10 @@ struct lkl_dev_pci_ops {
 				unsigned long resource_size,
 				int resource_index);
 	unsigned long long (*map_page)(struct lkl_pci_dev *dev, void *vaddr,
-				       unsigned long size);
+				       unsigned long size, int consistent);
 	void (*unmap_page)(struct lkl_pci_dev *dev,
-			   unsigned long long dma_handle, unsigned long size);
+			   unsigned long long dma_handle,
+			   unsigned long size, int consistent);
 };
 
 /**

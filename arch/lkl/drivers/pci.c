@@ -111,14 +111,14 @@ static void *lkl_dma_alloc(struct device *dev, size_t size,
 {
 	void *vaddr = page_to_virt(alloc_pages(gfp, get_order(size)));
 	*dma_handle = (dma_addr_t)lkl_ops->pci_ops->map_page(
-		to_pci_dev(dev)->sysdata, vaddr, size);
+		to_pci_dev(dev)->sysdata, vaddr, size, 1);
 	return vaddr;
 }
 
 static void lkl_dma_free(struct device *dev, size_t size, void *cpu_addr,
 			 dma_addr_t dma_addr, unsigned long attrs)
 {
-	lkl_ops->pci_ops->unmap_page(to_pci_dev(dev)->sysdata, dma_addr, size);
+	lkl_ops->pci_ops->unmap_page(to_pci_dev(dev)->sysdata, dma_addr, size, 1);
 	__free_pages(cpu_addr, get_order(size));
 }
 
@@ -128,7 +128,7 @@ static dma_addr_t lkl_dma_map_page(struct device *dev, struct page *page,
 				   unsigned long attrs)
 {
 	dma_addr_t dma_handle = (dma_addr_t)lkl_ops->pci_ops->map_page(
-		to_pci_dev(dev)->sysdata, page_to_virt(page) + offset, size);
+		to_pci_dev(dev)->sysdata, page_to_virt(page) + offset, size, 0);
 	if (dma_handle == 0)
 		return DMA_MAPPING_ERROR;
 
@@ -139,7 +139,7 @@ static void lkl_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
 			       size_t size, enum dma_data_direction dir,
 			       unsigned long attrs)
 {
-	lkl_ops->pci_ops->unmap_page(to_pci_dev(dev)->sysdata, dma_addr, size);
+	lkl_ops->pci_ops->unmap_page(to_pci_dev(dev)->sysdata, dma_addr, size, 0);
 }
 
 static int lkl_dma_map_sg(struct device *dev, struct scatterlist *sgl,

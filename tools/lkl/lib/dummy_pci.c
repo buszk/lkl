@@ -14,7 +14,39 @@
 #include <sys/mman.h>
 #include <linux/vfio.h>
 #include <sys/eventfd.h>
+#include <execinfo.h>
 #include "iomem.h"
+#include "memwatcher.h"
+
+
+// #define VENDOR_ID	0x1d6a
+// #define DEVICE_ID	0x1
+// #define REVISION_ID	0x1
+
+
+#define VENDOR_ID	0x8888
+#define DEVICE_ID	0x0
+#define REVISION_ID	0x0
+
+/* Obtain a backtrace and print it to stdout. */
+void print_trace (void)
+{
+  void *array[10];
+  char **strings;
+  int size, i;
+
+  size = backtrace (array, 10);
+  strings = backtrace_symbols (array, size);
+  if (strings != NULL)
+  {
+
+    printf ("Obtained %d stack frames.\n", size);
+    for (i = 0; i < size; i++)
+      printf ("%s\n", strings[i]);
+  }
+
+  free (strings);
+}
 
 struct lkl_pci_dev {
 	int irq;
@@ -86,15 +118,58 @@ static int dummy_pci_irq_init(struct lkl_pci_dev *dev, int irq)
 	return 0;
 }
 
+static const char* dma_type(int consistent) {
+	if (consistent)
+		return "consistent";
+	else
+		return "stream";
+}
+
+static void consistent_dma_read(void* addr, uint64_t offset, uint8_t size) {
+	switch (size) {
+	case 8:
+		*(uint64_t *)addr = (uint64_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%016lx\n",
+					 __func__, offset, size, *(uint64_t *)addr);
+		break;
+	case 4:
+		// print_trace();
+		*(uint32_t *)addr = (uint32_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%08x\n",
+					 __func__, offset, size, *(uint32_t *)addr);
+		break;
+	case 2:
+		*(uint16_t *)addr = (uint16_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%04x\n",
+					 __func__, offset, size, *(uint16_t *)addr);
+		break;
+	case 1:
+		*(uint8_t *)addr = (uint8_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%02x\n",
+					 __func__, offset, size, *(uint8_t *)addr);
+		break;
+	}
+}
+
 static unsigned long long dummy_map_page(struct lkl_pci_dev *dev, void *vaddr,
-					unsigned long size)
+					unsigned long size, int consistent)
 {
-	return (unsigned long long)vaddr - dev->dma_map.vaddr;
+	unsigned long long ret;
+	ret = (unsigned long long)vaddr - dev->dma_map.vaddr;
+	lkl_printf("[%s][%s] vaddr: %p, size: %llx, ret: %llx\n",
+			__func__, dma_type(consistent), vaddr, size, ret);
+	memset(vaddr, 'A', size);
+	if (consistent)
+		_watch_address(vaddr, size, PROT_NONE, consistent_dma_read);
+	return ret;
 }
 
 static void dummy_unmap_page(struct lkl_pci_dev *dev,
-			    unsigned long long dma_handle, unsigned long size)
+			    unsigned long long dma_handle,
+				unsigned long size, int consistent)
 {
+	lkl_printf("[%s][%s] dma_handle: %p, size: %llx\n",
+			__func__, dma_type(consistent), dma_handle, size);
 }
 
 
@@ -103,12 +178,12 @@ static int dummy_pci_read(struct lkl_pci_dev *dev, int where, int size,
 {
 	// lkl_printf("dummy_pci_read: %02x[%02x]\n", where, size);
 	if (where == 0 && size == 4) {
-		*(uint16_t *)val = 0x1d6a; 	// vendor_id
-		*((uint16_t *)val+1) = 1; 	// device_id
+		*(uint16_t *)val = VENDOR_ID; 	// vendor_id
+		*((uint16_t *)val+1) = DEVICE_ID; 	// device_id
 		return size;
 	}
 	else if (where == 8 && size == 4) {
-		*((uint32_t *)val) = 1;		// revision_id
+		*((uint32_t *)val) = REVISION_ID;		// revision_id
 		return size;
 	}
 	else if (where == 0x10 && size == 4) { // BAR0
@@ -133,20 +208,28 @@ static int dummy_pci_write(struct lkl_pci_dev *dev, int where, int size,
 
 static int pci_resource_read(void *data, int offset, void *res, int size)
 {
-	void *addr = data + offset;
 
 	switch (size) {
 	case 8:
-		*(uint64_t *)res = *(uint64_t *)addr;
+		*(uint64_t *)res = (uint64_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%016lx\n",
+					 __func__, offset, size, *(uint64_t *)res);
 		break;
 	case 4:
-		*(uint32_t *)res = *(uint32_t *)addr;
+		// print_trace();
+		*(uint32_t *)res = (uint32_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%08x\n",
+					 __func__, offset, size, *(uint32_t *)res);
 		break;
 	case 2:
-		*(uint16_t *)res = *(uint16_t *)addr;
+		*(uint16_t *)res = (uint16_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%04x\n",
+					 __func__, offset, size, *(uint16_t *)res);
 		break;
 	case 1:
-		*(uint8_t *)res = *(uint8_t *)addr;
+		*(uint8_t *)res = (uint8_t)rand();
+		lkl_printf("%s 0x%08x[%02x] = 0x%02x\n",
+					 __func__, offset, size, *(uint8_t *)res);
 		break;
 	default:
 		return -LKL_EOPNOTSUPP;
