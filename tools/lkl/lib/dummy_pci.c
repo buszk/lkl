@@ -91,6 +91,9 @@ static struct lkl_pci_dev *dummy_pci_add(const char *name, void *kernel_ram,
 			VFIO_DMA_MAP_FLAG_READ | VFIO_DMA_MAP_FLAG_WRITE;
 	}
 
+	time_t t;
+	srand((unsigned) time(&t));
+
 	return dev;
 }
 
