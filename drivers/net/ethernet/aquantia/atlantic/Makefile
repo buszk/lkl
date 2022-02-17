@@ -13,6 +13,7 @@
 # Makefile for the AQtion(tm) Ethernet driver
 #
 
+# ccflags-y += -integrated-as -fsanitize=fuzzer-no-link 
 obj-$(CONFIG_AQTION) += atlantic.o
 
 atlantic-objs := aq_main.o \
