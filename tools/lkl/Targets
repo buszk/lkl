@@ -27,3 +27,7 @@ progs-y += tests/disk-vfio-pci
 progs-y += tests/net-test
 progs-y += tests/virt-pci
 
+LDFLAGS_harness/libfuzzer-harness-y += -fsanitize=fuzzer
+CFLAGS_harness/libfuzzer-harness-y += -Itests
+progs-y += harness/libfuzzer-harness
+

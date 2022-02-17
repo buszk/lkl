@@ -1,0 +1,1 @@
+libfuzzer-harness-y += libfuzzer-harness.o
