@@ -1,1 +1,2 @@
 libfuzzer-harness-y += libfuzzer-harness.o
+afl-harness-y += afl-harness.o

@@ -5,11 +5,19 @@
 MAKEFLAGS += -r --no-print-directory
 KCONFIG?=defconfig
 LDLIBS=-lcapstone
+
 LDFLAGS += -fuse-ld=gold # essential for -fsanitize=fuzzer-no-link
-CLANG_ARGS= CONFIG_CC_IS_CLANG=y LLVM=1 CC=clang LD=ld.gold \
+CLANG=/home/buszk/Workspace/git/AFLplusplus/afl-clang-fast
+CLANG=clang
+CLANG_ARGS= CONFIG_CC_IS_CLANG=y LLVM=1 CC=${CLANG} LD=ld.gold \
   AS=llvm-as AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
   OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf \
-  HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.gold  HOSTAS=llvm-as
+  HOSTCC=${CLANG} HOSTCXX=${CLANG}++ HOSTAR=llvm-ar HOSTLD=ld.gold  HOSTAS=llvm-as
+
+# CLANG_ARGS= CC=/home/buszk/Workspace/git/AFLplusplus/afl-gcc \
+# 	HOSTCC=gcc
+
+# CLANG_ARGS= CC=gcc
 
 ifneq ($(silent),1)
   ifneq ($(V),1)
@@ -68,6 +76,7 @@ endif
 # rule to build lkl.o
 $(OUTPUT)lib/lkl.o: bin/stat
 	$(Q)$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT) $(KCONFIG)
+	$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT)
 # this workaround is for arm32 linker (ld.gold)
 	$(Q)export PATH=$(srctree)/tools/lkl/bin/:${PATH} ;\
 	$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT) install INSTALL_PATH=$(OUTPUT)

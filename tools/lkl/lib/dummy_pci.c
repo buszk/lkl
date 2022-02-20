@@ -19,14 +19,14 @@
 #include "memwatcher.h"
 
 
-// #define VENDOR_ID	0x1d6a
+#define VENDOR_ID	0x1d6a
+#define DEVICE_ID	0x1
+#define REVISION_ID	0x1
+
+
+// #define VENDOR_ID	0x8888
 // #define DEVICE_ID	0x1
-// #define REVISION_ID	0x1
-
-
-#define VENDOR_ID	0x8888
-#define DEVICE_ID	0x0
-#define REVISION_ID	0x0
+// #define REVISION_ID	0x0
 
 /* Obtain a backtrace and print it to stdout. */
 void print_trace (void)

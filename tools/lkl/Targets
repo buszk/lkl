@@ -21,13 +21,18 @@ progs-$(LKL_HOST_CONFIG_ARCHIVE) += cptofs
 LDLIBS_cptofs-y := -larchive
 LDLIBS_cptofs-$(LKL_HOST_CONFIG_NEEDS_LARGP) += -largp
 
-progs-y += tests/boot
-progs-y += tests/disk
-progs-y += tests/disk-vfio-pci
-progs-y += tests/net-test
-progs-y += tests/virt-pci
+progs-$(LKL_TEST) += tests/boot
+progs-$(LKL_TEST) += tests/disk
+progs-$(LKL_TEST) += tests/disk-vfio-pci
+progs-$(LKL_TEST) += tests/net-test
+progs-$(LKL_TEST) += tests/virt-pci
+progs-$(LKL_TEST) += tests/virt-pci-test
 
-LDFLAGS_harness/libfuzzer-harness-y += -fsanitize=fuzzer
-CFLAGS_harness/libfuzzer-harness-y += -Itests
-progs-y += harness/libfuzzer-harness
+LDFLAGS_harness/libfuzzer-harness-$(LKL_LIBFUZZER) += -fsanitize=fuzzer
+CFLAGS_harness/libfuzzer-harness-$(LKL_LIBFUZZER) += -Itests
+progs-$(LKL_LIBFUZZER) += harness/libfuzzer-harness
+
+
+LDFLAGS_harness/afl-harness-y += /home/buszk/Workspace/git/AFLplusplus/afl-llvm-rt-64.o
+progs-y += harness/afl-harness
 
