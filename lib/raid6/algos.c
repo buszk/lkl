@@ -159,7 +159,8 @@ static inline const struct raid6_calls *raid6_choose_gen(
 			if ((*algo)->valid && !(*algo)->valid())
 				continue;
 
-			if (!IS_ENABLED(CONFIG_RAID6_PQ_BENCHMARK)) {
+			// if (!IS_ENABLED(CONFIG_RAID6_PQ_BENCHMARK)) {
+			if (1) {
 				best = *algo;
 				break;
 			}
