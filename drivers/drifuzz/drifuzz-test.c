@@ -46,8 +46,8 @@ static int drifuzz_test_probe(struct pci_dev *pdev, const struct pci_device_id *
 	pci_set_drvdata(pdev, adapter);
 
     const_dma = dma_alloc_coherent(&pdev->dev, 0x1000, &dma_handle, GFP_KERNEL);
-	printk(KERN_INFO "%x\n", *(uint8_t*)const_dma);
-	printk(KERN_INFO "%x\n", *((uint16_t*)const_dma +0x55));
+	printk(KERN_INFO "%x\n", *((uint8_t*)const_dma + 0x77));
+	printk(KERN_INFO "%x\n", *((uint16_t*)const_dma + 0x55));
     printk(KERN_INFO "%x\n", *((uint32_t*)const_dma + 0x111));
 
 	stream_dma = kmalloc(0x101, GFP_KERNEL);
@@ -80,7 +80,7 @@ static struct pci_driver qemu_driver = {
 /* PCI ends */
 
 
-int __init qemu_init_module(void) {
+static int __init qemu_init_module(void) {
 	int ret;
 	printk(KERN_INFO "Test init\n");
 	if ((ret = pci_register_driver(&qemu_driver)) != 0) {

@@ -14,6 +14,7 @@
 #
 
 # ccflags-y += -integrated-as -fsanitize=fuzzer-no-link 
+ccflags-y += -integrated-as -Xclang -load -Xclang /home/buszk/Workspace/git/AFLplusplus/./afl-llvm-pass.so
 obj-$(CONFIG_AQTION) += atlantic.o
 
 atlantic-objs := aq_main.o \
