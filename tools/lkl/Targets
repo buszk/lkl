@@ -9,15 +9,15 @@ LDLIBS_lib/hijack/liblkl-hijack-$(LKL_HOST_CONFIG_ARM) += -lgcc -lc
 LDLIBS_lib/hijack/liblkl-hijack-$(LKL_HOST_CONFIG_AARCH64) += -lc
 LDLIBS_lib/hijack/liblkl-hijack-$(LKL_HOST_CONFIG_I386) += -lc_nonshared
 
-progs-$(LKL_HOST_CONFIG_FUSE) += lklfuse
+progs-$(LKL_HOST_CONFIG_FUSE_IGNORE) += lklfuse
 LDLIBS_lklfuse-y := -lfuse
 
-progs-$(LKL_HOST_CONFIG_ARCHIVE) += fs2tar
+progs-$(LKL_HOST_CONFIG_ARCHIVE_IGNORE) += fs2tar
 LDLIBS_fs2tar-y := -larchive
 LDLIBS_fs2tar-$(LKL_HOST_CONFIG_NEEDS_LARGP) += -largp
 
 
-progs-$(LKL_HOST_CONFIG_ARCHIVE) += cptofs
+progs-$(LKL_HOST_CONFIG_ARCHIVE_IGNORE) += cptofs
 LDLIBS_cptofs-y := -larchive
 LDLIBS_cptofs-$(LKL_HOST_CONFIG_NEEDS_LARGP) += -largp
 
@@ -33,6 +33,6 @@ CFLAGS_harness/libfuzzer-harness-$(LKL_LIBFUZZER) += -Itests
 progs-$(LKL_LIBFUZZER) += harness/libfuzzer-harness
 
 
-LDFLAGS_harness/afl-harness-y += /home/buszk/Workspace/git/AFLplusplus/afl-llvm-rt-64.o
+LDFLAGS_harness/afl-harness-y += $(HOME)/Workspace/git/AFLplusplus/afl-llvm-rt-64.o
 progs-y += harness/afl-harness
 
