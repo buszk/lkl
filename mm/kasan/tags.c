@@ -85,6 +85,11 @@ bool check_memory_region(unsigned long addr, size_t size, bool write,
 
 	if (unlikely(size == 0))
 		return true;
+		
+	if(unlikely(lkl_kasan_shadow_start == 0)){
+		panic("lkl_kasan_shadow_start = 0!!");
+		return;
+	}
 
 	tag = get_tag((const void *)addr);
 
@@ -110,8 +115,14 @@ bool check_memory_region(unsigned long addr, size_t size, bool write,
 
 	untagged_addr = reset_tag((const void *)addr);
 	if (unlikely(untagged_addr <
-			kasan_shadow_to_mem((void *)KASAN_SHADOW_START))) {
+			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)
+#ifdef CONFIG_LKL
+                || ((unsigned long)addr > memory_end) || ((unsigned long)addr < memory_start)
+#endif 
+			)) {
+#ifdef CONFIG_LKL
 		kasan_report(addr, size, write, ret_ip);
+#endif 
 		return false;
 	}
 	shadow_first = kasan_mem_to_shadow(untagged_addr);

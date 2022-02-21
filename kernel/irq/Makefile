@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+KASAN_SANITIZE := n
 
 obj-y := irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o
 obj-$(CONFIG_IRQ_TIMINGS) += timings.o

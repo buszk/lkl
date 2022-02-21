@@ -29,7 +29,9 @@
 #include <linux/sched.h>
 #include <linux/sched/task_stack.h>
 #include <linux/slab.h>
+#ifdef CONFIG_STACKDEPOT
 #include <linux/stacktrace.h>
+#endif
 #include <linux/string.h>
 #include <linux/types.h>
 #include <linux/vmalloc.h>
@@ -39,6 +41,14 @@
 #include "kasan.h"
 #include "../slab.h"
 
+
+#undef __memset
+extern void *__memset(void *, int, __kernel_size_t);
+#undef __memcpy
+extern void *__memcpy(void *, const void *, __kernel_size_t);
+#undef __memmove
+extern void *__memmove(void *, const void *, __kernel_size_t);
+
 static inline int in_irqentry_text(unsigned long ptr)
 {
 	return (ptr >= (unsigned long)&__irqentry_text_start &&
@@ -47,6 +57,7 @@ static inline int in_irqentry_text(unsigned long ptr)
 		 ptr < (unsigned long)&__softirqentry_text_end);
 }
 
+#ifdef CONFIG_STACKDEPOT
 static inline unsigned int filter_irq_stacks(unsigned long *entries,
 					     unsigned int nr_entries)
 {
@@ -70,11 +81,14 @@ static inline depot_stack_handle_t save_stack(gfp_t flags)
 	nr_entries = filter_irq_stacks(entries, nr_entries);
 	return stack_depot_save(entries, nr_entries, flags);
 }
+#endif
 
 static inline void set_track(struct kasan_track *track, gfp_t flags)
 {
 	track->pid = current->pid;
+#ifdef CONFIG_STACKDEPOT
 	track->stack = save_stack(flags);
+#endif
 }
 
 void kasan_enable_current(void)
@@ -98,7 +112,7 @@ bool __kasan_check_write(const volatile void *p, unsigned int size)
 	return check_memory_region((unsigned long)p, size, true, _RET_IP_);
 }
 EXPORT_SYMBOL(__kasan_check_write);
-
+#ifdef memset
 #undef memset
 void *memset(void *addr, int c, size_t len)
 {
@@ -106,7 +120,9 @@ void *memset(void *addr, int c, size_t len)
 
 	return __memset(addr, c, len);
 }
+#endif
 
+#ifdef memmove
 #undef memmove
 void *memmove(void *dest, const void *src, size_t len)
 {
@@ -115,7 +131,9 @@ void *memmove(void *dest, const void *src, size_t len)
 
 	return __memmove(dest, src, len);
 }
+#endif
 
+#ifdef memcpy
 #undef memcpy
 void *memcpy(void *dest, const void *src, size_t len)
 {
@@ -124,6 +142,7 @@ void *memcpy(void *dest, const void *src, size_t len)
 
 	return __memcpy(dest, src, len);
 }
+#endif
 
 /*
  * Poisons the shadow memory for 'size' bytes starting from 'addr'.
@@ -574,6 +593,7 @@ void kasan_kfree_large(void *ptr, unsigned long ip)
 	/* The object will be poisoned by page_alloc. */
 }
 
+#ifndef CONFIG_LKL
 int kasan_module_alloc(void *addr, size_t size)
 {
 	void *ret;
@@ -603,6 +623,7 @@ int kasan_module_alloc(void *addr, size_t size)
 
 	return -ENOMEM;
 }
+#endif
 
 void kasan_free_shadow(const struct vm_struct *vm)
 {

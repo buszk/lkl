@@ -41,6 +41,14 @@
 #include "kasan.h"
 #include "../slab.h"
 
+#undef __memset
+extern void *__memset(void *, int, __kernel_size_t);
+#undef __memcpy
+extern void *__memcpy(void *, const void *, __kernel_size_t);
+#undef __memmove
+extern void *__memmove(void *, const void *, __kernel_size_t);
+
+
 /*
  * All functions below always inlined so compiler could
  * perform better optimizations in each of __asan_loadX/__assn_storeX
@@ -205,6 +213,9 @@ void kasan_cache_shutdown(struct kmem_cache *cache)
 
 static void register_global(struct kasan_global *global)
 {
+    //return;
+	//printk(KERN_INFO "%s %llx %s:%d\n", __func__, (unsigned long long)global->beg, 
+	//	global->location->filename, global->location->line_no);
 	size_t aligned_size = round_up(global->size, KASAN_SHADOW_SCALE_SIZE);
 
 	kasan_unpoison_shadow(global->beg, global->size);

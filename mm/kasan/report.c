@@ -22,8 +22,10 @@
 #include <linux/printk.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
+#ifdef CONFIG_STACKDEPOT
 #include <linux/stackdepot.h>
 #include <linux/stacktrace.h>
+#endif
 #include <linux/string.h>
 #include <linux/types.h>
 #include <linux/kasan.h>
@@ -94,21 +96,27 @@ static void end_report(unsigned long *flags)
 	spin_unlock_irqrestore(&report_lock, *flags);
 	if (panic_on_warn)
 		panic("panic_on_warn set ...\n");
+		
+#ifdef CONFIG_KASAN_PANIC_ON_ERROR
+	panic("ksan_panic_on_error set\n");
+#endif
 	kasan_enable_current();
 }
 
 static void print_track(struct kasan_track *track, const char *prefix)
 {
 	pr_err("%s by task %u:\n", prefix, track->pid);
+#ifdef CONFIG_STACKDEPOT
 	if (track->stack) {
 		unsigned long *entries;
 		unsigned int nr_entries;
 
 		nr_entries = stack_depot_fetch(track->stack, &entries);
 		stack_trace_print(entries, nr_entries, 0);
-	} else {
-		pr_err("(stack is not available)\n");
+		return;
 	}
+#endif
+	pr_err("(stack is not available)\n");
 }
 
 static struct page *addr_to_page(const void *addr)

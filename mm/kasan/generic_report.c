@@ -96,12 +96,17 @@ static const char *get_wild_bug_type(struct kasan_access_info *info)
 	const char *bug_type = "unknown-crash";
 
 	if ((unsigned long)info->access_addr < PAGE_SIZE)
-		bug_type = "null-ptr-deref";
+		bug_type = "null-ptr-deref (addr does not have shadow)";
+#ifndef CONFIG_LKL
 	else if ((unsigned long)info->access_addr < TASK_SIZE)
 		bug_type = "user-memory-access";
+#endif
 	else
-		bug_type = "wild-memory-access";
+		bug_type = "wild-memory-access (addr does not have shadow)";
 
+	pr_info("%lx\n",info->access_addr);
+	pr_info("%lx\n",memory_start);
+	pr_info("%lx\n",memory_end);
 	return bug_type;
 }
 

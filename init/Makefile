@@ -3,6 +3,7 @@
 # Makefile for the linux kernel.
 #
 
+KASAN_SANITIZE := n
 ccflags-y := -fno-function-sections -fno-data-sections
 
 obj-y                          := main.o version.o mounts.o

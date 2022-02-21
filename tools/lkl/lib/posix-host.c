@@ -16,6 +16,8 @@
 #include <sys/mman.h>
 #include <poll.h>
 #include <lkl_host.h>
+#include <sys/eventfd.h>
+#include <execinfo.h>
 #include "iomem.h"
 #include "jmp_buf.h"
 
@@ -298,8 +300,28 @@ static void timer_free(void *_timer)
 	timer_delete(timer);
 }
 
+static void print_trace (void)
+{
+  void *array[10];
+  char **strings;
+  int size, i;
+
+  size = backtrace (array, 10);
+  strings = backtrace_symbols (array, size);
+  if (strings != NULL)
+  {
+
+    lkl_printf ("Obtained %d stack frames.\n", size);
+    for (i = 0; i < size; i++)
+      lkl_printf ("%s\n", strings[i]);
+  }
+
+  free (strings);
+}
+
 static void panic(void)
 {
+	print_trace();
 	assert(0);
 }
 

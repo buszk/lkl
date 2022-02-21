@@ -1,5 +1,7 @@
 include arch/lkl/auto.conf
 
+KASAN_SANITIZE := n
+
 KBUILD_CFLAGS += -fno-builtin
 
 exec_format = $(firstword $(subst -, ,$(OUTPUT_FORMAT)))
@@ -26,7 +28,7 @@ endif
 
 LDFLAGS_vmlinux += -r
 LKL_ENTRY_POINTS := lkl_start_kernel lkl_sys_halt lkl_syscall lkl_trigger_irq \
-	lkl_get_free_irq lkl_put_irq lkl_is_running lkl_bug lkl_printf
+	lkl_get_free_irq lkl_put_irq lkl_is_running lkl_bug lkl_printf lkl_kasan_init
 
 ifeq ($(OUTPUT_FORMAT),elf32-i386)
 LKL_ENTRY_POINTS += \
@@ -37,6 +39,7 @@ endif
 core-y += arch/lkl/kernel/
 core-y += arch/lkl/mm/
 core-y += arch/lkl/drivers/
+core-y += arch/lkl/lib/
 
 all: lkl.o
 

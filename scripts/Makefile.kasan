@@ -9,7 +9,11 @@ endif
 
 KASAN_SHADOW_OFFSET ?= $(CONFIG_KASAN_SHADOW_OFFSET)
 
-CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
+CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address \
+	-mllvm -asan-instrumentation-with-call-threshold=0 \
+	-mllvm -asan-stack=1 \
+	-mllvm -asan-instrument-reads=1 \
+	-mllvm -asan-instrument-writes=1
 
 cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
 
@@ -19,16 +23,7 @@ CFLAGS_KASAN_SHADOW := $(call cc-option, -fsanitize=kernel-address \
 			$(call cc-option, -fsanitize=kernel-address \
 			-mllvm -asan-mapping-offset=$(KASAN_SHADOW_OFFSET)))
 
-ifeq ($(strip $(CFLAGS_KASAN_SHADOW)),)
-	CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
-else
-	# Now add all the compiler specific options that are valid standalone
-	CFLAGS_KASAN := $(CFLAGS_KASAN_SHADOW) \
-	 $(call cc-param,asan-globals=1) \
-	 $(call cc-param,asan-instrumentation-with-call-threshold=$(call_threshold)) \
-	 $(call cc-param,asan-stack=$(CONFIG_KASAN_STACK)) \
-	 $(call cc-param,asan-instrument-allocas=1)
-endif
+CFLAGS_KASAN := $(CFLAGS_KASAN_MINIMAL)
 
 endif # CONFIG_KASAN_GENERIC
 
@@ -48,4 +43,10 @@ endif # CONFIG_KASAN_SW_TAGS
 
 ifdef CONFIG_KASAN
 CFLAGS_KASAN_NOSANITIZE := -fno-builtin
+# dirt overring for lkl... XXX XXX XXX
+CFLAGS_KASAN := -fsanitize=kernel-address  \
+	-mllvm -asan-instrumentation-with-call-threshold=0 \
+	-mllvm -asan-stack=0 \
+	-mllvm -asan-instrument-reads=1 \
+	-mllvm -asan-instrument-writes=1 
 endif

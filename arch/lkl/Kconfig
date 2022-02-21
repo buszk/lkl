@@ -2,6 +2,7 @@ config LKL
        def_bool y
        depends on !SMP && !MMU && !COREDUMP && !SECCOMP && !UPROBES && !COMPAT && !USER_RETURN_NOTIFIER
        select ARCH_THREAD_STACK_ALLOCATOR
+       select HAVE_ARCH_KASAN
        select RWSEM_GENERIC_SPINLOCK
        select GENERIC_ATOMIC64
        select GENERIC_HWEIGHT
@@ -37,6 +38,9 @@ config LKL
        select HAVE_MEMBLOCK
        select NO_BOOTMEM
        select BLK_DEV_NVME
+
+config STACKTRACE_SUPPORT
+	def_bool n
 
 config OUTPUT_FORMAT
        string "Output format"

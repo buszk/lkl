@@ -117,7 +117,21 @@ struct kasan_free_meta *get_free_info(struct kmem_cache *cache,
 
 static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
 {
-	return (void *)(((unsigned long)shadow_addr - KASAN_SHADOW_OFFSET)
+    unsigned long shadow_offset;
+    shadow_offset = KASAN_SHADOW_OFFSET;
+#ifdef CONFIG_LKL
+    if((unsigned long)shadow_addr >= lkl_kasan_shadow_start &&
+            (unsigned long)shadow_addr <= lkl_kasan_shadow_end) {
+        shadow_offset = KASAN_SHADOW_OFFSET;
+    }
+    else if ((unsigned long)shadow_addr >= lkl_kasan_stack_shadow_start && shadow_addr <= lkl_kasan_stack_shadow_end) {
+        shadow_offset = KASAN_STACK_SHADOW_OFFSET;
+    }
+    else {
+        panic("failed to find stack shadow\n");
+    }
+#endif
+	return (void *)(((unsigned long)shadow_addr - shadow_offset)
 		<< KASAN_SHADOW_SCALE_SHIFT);
 }
 

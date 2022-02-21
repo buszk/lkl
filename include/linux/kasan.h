@@ -14,19 +14,41 @@ struct task_struct;
 #include <asm/kasan.h>
 #include <asm/pgtable.h>
 
+#ifdef CONFIG_MMU
 extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
 extern pte_t kasan_early_shadow_pte[PTRS_PER_PTE];
 extern pmd_t kasan_early_shadow_pmd[PTRS_PER_PMD];
 extern pud_t kasan_early_shadow_pud[PTRS_PER_PUD];
 extern p4d_t kasan_early_shadow_p4d[MAX_PTRS_PER_P4D];
+#endif
 
 int kasan_populate_early_shadow(const void *shadow_start,
 				const void *shadow_end);
 
 static inline void *kasan_mem_to_shadow(const void *addr)
 {
+    unsigned long shadow_offset;
+    shadow_offset = KASAN_SHADOW_OFFSET;
+#ifdef CONFIG_LKL
+    if((unsigned long)addr >= memory_start &&
+            (unsigned long)addr <= memory_end) {
+        shadow_offset = KASAN_SHADOW_OFFSET;
+    }
+    else if ((unsigned long)addr >= lkl_kasan_stack_start &&
+            (unsigned long)addr <= lkl_kasan_stack_end) {
+        shadow_offset = KASAN_STACK_SHADOW_OFFSET;
+    }
+    else if ((unsigned long)addr >= lkl_kasan_global_start &&
+            (unsigned long)addr <= lkl_kasan_global_end) {
+        shadow_offset = KASAN_GLOBAL_SHADOW_OFFSET;
+    }
+    else {
+        printk(KERN_INFO "failed at mem_to_shadow\n");
+        panic("failed at mem_to_shadow\n");
+    }
+#endif
 	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
-		+ KASAN_SHADOW_OFFSET;
+		+ shadow_offset;
 }
 
 /* Enable reporting bugs after kasan_disable_current() */

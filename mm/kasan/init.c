@@ -33,6 +33,7 @@
  */
 unsigned char kasan_early_shadow_page[PAGE_SIZE] __page_aligned_bss;
 
+#ifdef CONFIG_MMU
 #if CONFIG_PGTABLE_LEVELS > 4
 p4d_t kasan_early_shadow_p4d[MAX_PTRS_PER_P4D] __page_aligned_bss;
 static inline bool kasan_p4d_table(pgd_t pgd)
@@ -80,6 +81,7 @@ static inline bool kasan_early_shadow_page_entry(pte_t pte)
 {
 	return pte_page(pte) == virt_to_page(lm_alias(kasan_early_shadow_page));
 }
+#endif
 
 static __init void *early_alloc(size_t size, int node)
 {
@@ -93,6 +95,7 @@ static __init void *early_alloc(size_t size, int node)
 	return ptr;
 }
 
+#ifdef CONFIG_MMU
 static void __ref zero_pte_populate(pmd_t *pmd, unsigned long addr,
 				unsigned long end)
 {
@@ -503,3 +506,4 @@ int kasan_add_zero_shadow(void *start, unsigned long size)
 					size >> KASAN_SHADOW_SCALE_SHIFT);
 	return ret;
 }
+#endif

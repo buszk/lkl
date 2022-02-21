@@ -951,6 +951,14 @@ int lkl_sysctl(const char *path, const char *value);
  */
 void lkl_sysctl_parse_write(const char *sysctls);
 
+#ifdef LKL_HOST_CONFIG_KASAN
+struct lkl_host_operations;
+unsigned long lkl_kasan_init(struct lkl_host_operations* ops,
+        unsigned long mem_sz, unsigned long stack_base,
+        unsigned long stack_size, unsigned long global_base, 
+		unsigned long global_size);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

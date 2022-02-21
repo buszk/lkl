@@ -12,6 +12,7 @@
 #include <asm/unistd.h>
 #include <asm/syscalls.h>
 #include <asm/cpu.h>
+#include <linux/kasan.h>
 
 struct lkl_host_operations *lkl_ops;
 static char cmd_line[COMMAND_LINE_SIZE];
@@ -45,6 +46,9 @@ static void __init lkl_run_kernel(void *arg)
 {
 	threads_init();
 	lkl_cpu_get();
+#ifdef CONFIG_KASAN
+	init_task.kasan_depth = 0;
+#endif
 	start_kernel();
 }
 

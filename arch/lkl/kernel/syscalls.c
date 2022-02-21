@@ -61,6 +61,7 @@ static int new_host_task(struct task_struct **task)
 
 	switch_to_host_task(host0);
 
+	// kasan_unpoison_task_stack(host0);
 	pid = kernel_thread(host_task_stub, NULL, CLONE_FLAGS);
 	if (pid < 0)
 		return pid;
