@@ -4,6 +4,8 @@
 
 #include <linux/const.h>
 
+#define PRINT_RANGE(entry) printk(KERN_INFO "%s: %lx-%lx\n", #entry, entry##_start, entry##_end)
+
 extern unsigned long memory_start, memory_end;
 extern unsigned long lkl_kasan_shadow_start;
 extern unsigned long lkl_kasan_shadow_end;
@@ -31,6 +33,8 @@ extern unsigned long lkl_kasan_global_shadow_end;
 						KASAN_SHADOW_SCALE_SHIFT))
 */
 #define KASAN_SHADOW_START (lkl_kasan_shadow_start)
+#define KASAN_STACK_SHADOW_START (lkl_kasan_stack_shadow_start)
+#define KASAN_GLOBAL_SHADOW_START (lkl_kasan_global_shadow_start)
 /*
  * 47 bits for kernel address -> (47 - KASAN_SHADOW_SCALE_SHIFT) bits for shadow
  * 56 bits for kernel address -> (56 - KASAN_SHADOW_SCALE_SHIFT) bits for shadow

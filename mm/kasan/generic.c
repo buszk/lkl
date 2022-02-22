@@ -213,9 +213,6 @@ void kasan_cache_shutdown(struct kmem_cache *cache)
 
 static void register_global(struct kasan_global *global)
 {
-    //return;
-	//printk(KERN_INFO "%s %llx %s:%d\n", __func__, (unsigned long long)global->beg, 
-	//	global->location->filename, global->location->line_no);
 	size_t aligned_size = round_up(global->size, KASAN_SHADOW_SCALE_SIZE);
 
 	kasan_unpoison_shadow(global->beg, global->size);

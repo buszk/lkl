@@ -47,7 +47,7 @@ procmaps_struct* pmparser_parse(int pid){
 		//fill the node
 		_pmparser_split_line(buf,addr1,addr2,perm,offset, dev,inode,pathname);
 		//printf("#%s",buf);
-		fprintf(stderr, "%s-%s %s %s %s %s\t%s\n",addr1,addr2,perm,offset,dev,inode,pathname);
+		// fprintf(stderr, "%s-%s %s %s %s %s\t%s\n",addr1,addr2,perm,offset,dev,inode,pathname);
 		//addr_start & addr_end
 		unsigned long l_addr_start;
 		sscanf(addr1,"%lx",(long unsigned *)&tmp->addr_start );

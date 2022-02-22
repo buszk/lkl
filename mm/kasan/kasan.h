@@ -121,14 +121,20 @@ static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
     shadow_offset = KASAN_SHADOW_OFFSET;
 #ifdef CONFIG_LKL
     if((unsigned long)shadow_addr >= lkl_kasan_shadow_start &&
-            (unsigned long)shadow_addr <= lkl_kasan_shadow_end) {
+            (unsigned long)shadow_addr < lkl_kasan_shadow_end) {
         shadow_offset = KASAN_SHADOW_OFFSET;
     }
-    else if ((unsigned long)shadow_addr >= lkl_kasan_stack_shadow_start && shadow_addr <= lkl_kasan_stack_shadow_end) {
+    else if ((unsigned long)shadow_addr >= lkl_kasan_stack_shadow_start &&
+			(unsigned long)shadow_addr < lkl_kasan_stack_shadow_end) {
         shadow_offset = KASAN_STACK_SHADOW_OFFSET;
     }
+    else if ((unsigned long)shadow_addr >= lkl_kasan_global_shadow_start &&
+			(unsigned long)shadow_addr < lkl_kasan_global_shadow_end) {
+        shadow_offset = KASAN_GLOBAL_SHADOW_OFFSET;
+    }
     else {
-        panic("failed to find stack shadow\n");
+        printk(KERN_INFO "failed at shadow_to_mem %llx\n", (uint64_t)shadow_addr);
+        // panic("failed to find stack shadow\n");
     }
 #endif
 	return (void *)(((unsigned long)shadow_addr - shadow_offset)
@@ -137,7 +143,11 @@ static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
 
 static inline bool addr_has_shadow(const void *addr)
 {
-	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
+	#define IN_RANGE(x, a , b) (x >= kasan_shadow_to_mem((void *)a) && \
+			x < kasan_shadow_to_mem((void *)b))
+	return IN_RANGE(addr,lkl_kasan_shadow_start, lkl_kasan_shadow_end) ||
+			IN_RANGE(addr,lkl_kasan_stack_shadow_start, lkl_kasan_stack_shadow_end) ||
+			IN_RANGE(addr,lkl_kasan_global_shadow_start, lkl_kasan_global_shadow_end);
 }
 
 void kasan_poison_shadow(const void *address, size_t size, u8 value);

@@ -461,9 +461,18 @@ void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned lon
 	void *tagged_addr;
 	void *untagged_addr;
 	unsigned long flags;
+	// printk(KERN_INFO "%s\n", __func__);
+
+	if (!((addr >= lkl_kasan_stack_start &&
+		addr < lkl_kasan_stack_end) ||
+		(addr >= memory_start &&
+		addr < memory_end)))
+		return;
 
 	if (likely(!report_enabled()))
 		return;
+
+	printk(KERN_INFO "%s enabled\n", __func__);
 
 	disable_trace_on_warning();
 
@@ -471,6 +480,14 @@ void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned lon
 	untagged_addr = reset_tag(tagged_addr);
 
 	info.access_addr = tagged_addr;
+	printk(KERN_INFO "has shadow %d\n", addr_has_shadow(untagged_addr));
+    PRINT_RANGE(lkl_kasan_shadow);
+    PRINT_RANGE(lkl_kasan_stack_shadow);
+    PRINT_RANGE(lkl_kasan_global_shadow);
+    PRINT_RANGE(memory);
+    PRINT_RANGE(lkl_kasan_global);
+    PRINT_RANGE(lkl_kasan_stack);
+
 	if (addr_has_shadow(untagged_addr))
 		info.first_bad_addr = find_first_bad_addr(tagged_addr, size);
 	else

@@ -43,8 +43,8 @@ static inline void *kasan_mem_to_shadow(const void *addr)
         shadow_offset = KASAN_GLOBAL_SHADOW_OFFSET;
     }
     else {
-        printk(KERN_INFO "failed at mem_to_shadow\n");
-        panic("failed at mem_to_shadow\n");
+        printk(KERN_INFO "failed at mem_to_shadow %llx\n", (uint64_t)addr);
+        // panic("failed at mem_to_shadow\n");
     }
 #endif
 	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
