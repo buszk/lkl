@@ -21,7 +21,7 @@ extern short pci_device;
 extern short pci_revision;
 
 static int kasan_test(short id) {
-	struct lkl_kasan_meta kasan_meta;
+	struct lkl_kasan_meta kasan_meta = {0};
     
     pci_vender = 0x8888;
     pci_device = 2;

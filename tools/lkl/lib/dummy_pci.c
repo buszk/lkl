@@ -112,6 +112,7 @@ static void dummy_pci_remove(struct lkl_pci_dev *dev)
 }
 
 /* TODO */
+__attribute__((unused))
 static void dummy_int_thread(void *_dev)
 {
 	// if should trigger

@@ -40,7 +40,7 @@ procmaps_struct* pmparser_parse(int pid){
 	char addr1[20],addr2[20], perm[8], offset[20], dev[10],inode[30],pathname[600];
 	while(1){
 		if( (c=fgetc(file))==EOF ) break;
-		fgets(buf+1,259,file);
+		if (fgets(buf+1,259,file)) {}
 		buf[0]=c;
 		//allocate a node
 		tmp=(procmaps_struct*)malloc(sizeof(procmaps_struct));
@@ -49,7 +49,6 @@ procmaps_struct* pmparser_parse(int pid){
 		//printf("#%s",buf);
 		// fprintf(stderr, "%s-%s %s %s %s %s\t%s\n",addr1,addr2,perm,offset,dev,inode,pathname);
 		//addr_start & addr_end
-		unsigned long l_addr_start;
 		sscanf(addr1,"%lx",(long unsigned *)&tmp->addr_start );
 		sscanf(addr2,"%lx",(long unsigned *)&tmp->addr_end );
 		//size
@@ -210,4 +209,47 @@ void pmparser_print(procmaps_struct* map, int order){
 
 		id++;
 	}
+}
+
+extern char *strcasestr(const char *haystack, const char *needle);
+void fill_kasan_meta(struct lkl_kasan_meta* to, const char *binary_name) {
+    static int add =0;
+    struct procmaps_struct *head, *pt;
+    pid_t pid = getpid();
+    printf("my pid: %d\n",pid);
+
+    head = pmparser_parse(pid);
+    //pmparser_print(head, -1);
+    
+    pt = head;
+    to->global_base = 0;
+    to->global_size = 0;
+    while(pt != NULL) {
+        if(strncmp(pt->pathname,"[stack]",10) == 0) {
+            to->stack_base = (unsigned long)pt->addr_start;
+            to->stack_size = (unsigned long)pt->length; 
+        }
+        if(strcasestr(pt->pathname, binary_name)) {
+            if (to->global_base == 0) {
+                to->global_base = (unsigned long)pt->addr_start;
+                to->global_size = (unsigned long)pt->length; 
+            }
+            else if ((unsigned long)pt->addr_start > to->global_base) {
+                to->global_size = (unsigned long)pt->addr_start - to->global_base + (unsigned long)pt->length;
+            }
+            else {
+                abort();
+            }
+            add =1;
+        }
+        else if (add)
+        {
+            add =0;
+            to->global_size = (unsigned long)pt->addr_start - to->global_base + (unsigned long)pt->length;
+        }
+        
+        pt = pt->next;
+    }
+    return;
+
 }

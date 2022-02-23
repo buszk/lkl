@@ -19,9 +19,7 @@ extern short pci_device;
 extern short pci_revision;
 
 int main() {
-	unsigned long stack_base;
-	struct lkl_kasan_meta kasan_meta;
-
+	struct lkl_kasan_meta kasan_meta = {0};
 
     pci_vender = 0x1d6a;
     pci_device = 0x1;
@@ -30,8 +28,8 @@ int main() {
 	fill_kasan_meta(&kasan_meta, "afl-harness");
 	lkl_kasan_init(&lkl_host_ops,
 			16 * 1024 * 1024,
-			kasan_meta.stack_base,
-			kasan_meta.stack_size,
+            kasan_meta.stack_base,
+            kasan_meta.stack_size,
             kasan_meta.global_base,
             kasan_meta.global_size
             );
