@@ -82,7 +82,6 @@ static struct pci_driver qemu_driver = {
 
 static int __init qemu_init_module(void) {
 	int ret;
-	printk(KERN_INFO "Test init\n");
 	if ((ret = pci_register_driver(&qemu_driver)) != 0) {
 		printk(KERN_ALERT "Could not register pci: %d\b", ret);
 		return ret;

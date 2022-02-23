@@ -19,14 +19,20 @@
 #include "memwatcher.h"
 
 
-#define VENDOR_ID	0x1d6a
-#define DEVICE_ID	0x1
-#define REVISION_ID	0x1
+short pci_vender = 0;
+short pci_device = 0;
+short pci_revision = 0;
 
+#define DEFAULT_VENDOR_ID	0x1d6a
+#define DEFAULT_DEVICE_ID	0x1
+#define DEFAULT_REVISION_ID	0x1
+// #define DEFAULT_VENDOR_ID	0x8888
+// #define DEFAULT_DEVICE_ID	0x2
+// #define DEFAULT_REVISION_ID	0x2
 
-// #define VENDOR_ID	0x8888
-// #define DEVICE_ID	0x1
-// #define REVISION_ID	0x0
+#define VENDOR_ID (pci_vender) ? pci_vender : DEFAULT_VENDOR_ID
+#define DEVICE_ID (pci_vender) ? pci_device : DEFAULT_DEVICE_ID
+#define REVISION_ID (pci_vender) ? pci_revision : DEFAULT_REVISION_ID
 
 /* Obtain a backtrace and print it to stdout. */
 void print_trace (void)

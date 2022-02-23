@@ -11,23 +11,23 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
-#include "pmparser.h"
+#include "../pmparser.h"
 
+#define KASAN_SOOB_TEST_ID 1
+#define KASAN_UAF_TEST_ID 2
 
 extern short pci_vender;
 extern short pci_device;
 extern short pci_revision;
 
-int main() {
-	unsigned long stack_base;
+static int kasan_test(short id) {
 	struct lkl_kasan_meta kasan_meta;
-
-
-    pci_vender = 0x1d6a;
-    pci_device = 0x1;
-    pci_revision = 0x1;
-
-	fill_kasan_meta(&kasan_meta, "afl-harness");
+    
+    pci_vender = 0x8888;
+    pci_device = 2;
+    pci_revision = id;
+    
+	fill_kasan_meta(&kasan_meta, "kasan-test");
 	lkl_kasan_init(&lkl_host_ops,
 			16 * 1024 * 1024,
 			kasan_meta.stack_base,

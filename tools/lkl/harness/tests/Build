@@ -1,0 +1,2 @@
+kasan-test-soob-y += kasan-test-soob.o ../pmparser.o
+kasan-test-uaf-y += kasan-test-uaf.o ../pmparser.o

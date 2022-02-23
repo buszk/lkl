@@ -62,7 +62,10 @@ export CFLAGS += -I$(OUTPUT)/include -Iinclude -Wall -g -O2 -Wextra \
 
 TARGETS := $(progs-y:%=$(OUTPUT)%$(EXESUF))
 TARGETS += $(libs-y:%=$(OUTPUT)%$(SOSUF))
-all: $(TARGETS)
+all: $(TARGETS) tests
+
+tests: $(TARGETS)
+	harness/tests/tester.sh
 
 # this workaround is for FreeBSD
 bin/stat:
