@@ -2,22 +2,35 @@
 
 DIR=$(readlink -f "$(dirname "$0")")
 
-COUNTER=0
-if ${DIR}/kasan-test-soob 2>&1 | grep -q "BUG: KASAN: slab-out-of-bounds"; then
-    echo "KASAN soob okay"
-else
-    let COUNTER=COUNTER+1
-    echo "KASAN soob test failed"
-fi
+FAILED=0
+function test_kasan() {
+    COUNTER=0
+    for i in $(seq 100);do
+        ${DIR}/kasan-test-$1 2>&1 >$1.log
+        if [ $? -ne 0 ];then
+            break
+        fi
+        if grep -q "$2" $1.log; then
+            :
+        else
+            let COUNTER=COUNTER+1
+            break
+        fi
+    done
+    # rm $1.log
 
-if ${DIR}/kasan-test-uaf 2>&1 | grep -q "BUG: KASAN: use-after-free"; then
-    echo "KASAN uaf okay"
-else
-    let COUNTER=COUNTER+1
-    echo "KASAN uaf test failed"
-fi
+    if [ ${COUNTER} -eq 0 ]; then
+        echo "ok    ....    $1"
+    else
+        echo "fail  ....    $1"
+        let FAILED=FAILED+1
+    fi
+}
+test_kasan soob "BUG: KASAN: slab-out-of-bounds"
+test_kasan uaf "BUG: KASAN: use-after-free"
 
-if [ ${COUNTER} -ne 0 ]; then
-    echo "KASAN test failed"
-    exit 1
+if [ ${FAILED} -eq 0 ]; then
+    echo "KASAN succeed"
+else
+    echo "KASAN failed"
 fi
