@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
+#include "afl.h"
 #include "pmparser.h"
 
 
@@ -35,7 +36,9 @@ int main() {
             );
 
 	lkl_start_kernel(&lkl_host_ops, "mem=16M loglevel=8 lkl_pci=vfio");
-	// lkl_sys_halt();
+    __AFL_INIT();
+    lkl_pci_init();
+    // lkl_sys_halt();
 
 	return 0;
 }

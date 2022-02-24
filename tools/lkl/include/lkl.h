@@ -956,8 +956,10 @@ struct lkl_host_operations;
 unsigned long lkl_kasan_init(struct lkl_host_operations* ops,
         unsigned long mem_sz, unsigned long stack_base,
         unsigned long stack_size, unsigned long global_base, 
-		unsigned long global_size);
+        unsigned long global_size);
 #endif
+
+int lkl_pci_init(void);
 
 #ifdef __cplusplus
 }

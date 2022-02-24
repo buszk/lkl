@@ -244,7 +244,7 @@ static struct platform_driver lkl_pci_driver = {
 	.shutdown = lkl_pci_shutdown,
 };
 
-static int __init lkl_pci_init(void)
+int __init lkl_pci_init(void)
 {
 	int ret;
 	struct platform_device *dev;
@@ -268,4 +268,4 @@ error:
 	return ret;
 }
 
-subsys_initcall(lkl_pci_init);
+// subsys_initcall(lkl_pci_init);

@@ -21,23 +21,24 @@ extern short pci_device;
 extern short pci_revision;
 
 static int kasan_test(short id) {
-	struct lkl_kasan_meta kasan_meta = {0};
+    struct lkl_kasan_meta kasan_meta = {0};
     
     pci_vender = 0x8888;
     pci_device = 2;
     pci_revision = id;
     
-	fill_kasan_meta(&kasan_meta, "kasan-test");
-	lkl_kasan_init(&lkl_host_ops,
-			16 * 1024 * 1024,
-			kasan_meta.stack_base,
-			kasan_meta.stack_size,
+    fill_kasan_meta(&kasan_meta, "kasan-test");
+    lkl_kasan_init(&lkl_host_ops,
+            16 * 1024 * 1024,
+            kasan_meta.stack_base,
+            kasan_meta.stack_size,
             kasan_meta.global_base,
             kasan_meta.global_size
             );
 
-	lkl_start_kernel(&lkl_host_ops, "mem=16M loglevel=8 lkl_pci=vfio");
-	// lkl_sys_halt();
+    lkl_start_kernel(&lkl_host_ops, "mem=16M loglevel=8 lkl_pci=vfio");
+    lkl_pci_init();
+    // lkl_sys_halt();
 
-	return 0;
+    return 0;
 }
