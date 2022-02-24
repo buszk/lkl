@@ -1,4 +1,4 @@
-inline void __AFL_INIT(void) {
+static inline void __AFL_INIT(void) {
     do {
         static volatile char *_A __attribute__((used));
         _A = (char*) "##SIG_AFL_DEFER_FORKSRV##";

@@ -35,7 +35,8 @@ int main() {
             kasan_meta.global_size
             );
 
-	lkl_start_kernel(&lkl_host_ops, "mem=16M loglevel=8 lkl_pci=vfio");
+    lkl_delayed_pci_init();
+    lkl_start_kernel(&lkl_host_ops, "mem=16M loglevel=8 lkl_pci=vfio");
     __AFL_INIT();
     lkl_pci_init();
     // lkl_sys_halt();

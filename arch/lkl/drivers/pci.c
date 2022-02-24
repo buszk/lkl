@@ -10,7 +10,12 @@
 #include <linux/dma-mapping.h>
 #include <linux/scatterlist.h>
 #include <linux/mm.h>
+#include <asm/cpu.h>
 #include <asm/host_ops.h>
+
+
+extern int is_running;
+extern int delayed_pci_init;
 
 static int lkl_pci_generic_read(struct pci_bus *bus, unsigned int devfn,
 				int where, int size, u32 *val)
@@ -244,28 +249,44 @@ static struct platform_driver lkl_pci_driver = {
 	.shutdown = lkl_pci_shutdown,
 };
 
+int __init lkl_delayed_pci_init(void) {
+	if (is_running)
+		lkl_bug("lkl_delayed_pci_init() must be called before lkl_start_kernel()");
+	delayed_pci_init = 1;
+	return 1;
+}
+
 int __init lkl_pci_init(void)
 {
 	int ret;
 	struct platform_device *dev;
 
+	if (is_running)
+		lkl_bug("lkl_delayed_pci_init() must be called before lkl_start_kernel()");
+
 	/*register a platform driver*/
 	ret = platform_driver_register(&lkl_pci_driver);
 	if (ret != 0)
-		return ret;
+		goto end;
 
 	dev = platform_device_alloc("lkl_pci", -1);
-	if (!dev)
-		return -ENOMEM;
+	if (!dev) {
+		ret = -ENOMEM;
+		goto end;
+	}
 
 	ret = platform_device_add(dev);
 	if (ret != 0)
 		goto error;
-
+end:
+	if (delayed_pci_init) {
+		is_running = 0;
+		lkl_cpu_put();
+	}
 	return 0;
 error:
 	platform_device_put(dev);
-	return ret;
+	goto end;
 }
 
 // subsys_initcall(lkl_pci_init);

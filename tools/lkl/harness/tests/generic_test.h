@@ -35,7 +35,7 @@ static int kasan_test(short id) {
             kasan_meta.global_base,
             kasan_meta.global_size
             );
-
+    lkl_delayed_pci_init();
     lkl_start_kernel(&lkl_host_ops, "mem=16M loglevel=8 lkl_pci=vfio");
     lkl_pci_init();
     // lkl_sys_halt();
