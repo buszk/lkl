@@ -972,6 +972,8 @@ int lkl_pci_init(void);
  */
 int lkl_delayed_pci_init(void);
 
+void lkl_set_fuzz_input(void*, size_t);
+
 #ifdef __cplusplus
 }
 #endif

@@ -90,7 +90,7 @@ pthread_spinlock_t cb_list_lock;
 uint32_t count;
 struct sigaction sa;
 
-
+void print_trace (void);
 static void _sigsegv_protector(int s, siginfo_t *sig_info, void *context);
 
 /* For testing purpose */
@@ -297,6 +297,7 @@ static void* _alloc_payload(void* inst, uint8_t inst_len) {
 
 static void _real_segfault() {
     PRINTF("segfault\n");
+    print_trace();
     exit(139);
 }
 
@@ -413,6 +414,11 @@ static void _sigsegv_protector(int s, siginfo_t *sig_info, void *vcontext)
     
     /* Real sigsegv */
     DPRINTF("---\n");
+    PRINTF("%s: Access Instr loc:  %p\n", __func__, rip);
+    PRINTF("%s:              mem:  %p\n", __func__, sig_info->si_addr);
+    PRINTF("%s:              len:  %d\n", __func__, len);
+    PRINTF("%s:              size: %d\n", __func__, size);
+    PRINTF("%s:              read: %d\n", __func__, is_read);
     _real_segfault();
 
 

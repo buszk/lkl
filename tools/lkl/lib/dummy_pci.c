@@ -17,6 +17,7 @@
 #include <execinfo.h>
 #include "iomem.h"
 #include "memwatcher.h"
+#include "fuzz_input.h"
 
 
 short pci_vender = 0;
@@ -138,23 +139,23 @@ static const char* dma_type(int consistent) {
 static void consistent_dma_read(void* addr, uint64_t offset, uint8_t size) {
 	switch (size) {
 	case 8:
-		*(uint64_t *)addr = (uint64_t)rand();
+		*(uint64_t *)addr = (uint64_t)get_qword();
 		lkl_printf("%s 0x%08x[%02x] = 0x%016lx\n",
 					 __func__, offset, size, *(uint64_t *)addr);
 		break;
 	case 4:
 		// print_trace();
-		*(uint32_t *)addr = (uint32_t)rand();
+		*(uint32_t *)addr = (uint32_t)get_dword();
 		lkl_printf("%s 0x%08x[%02x] = 0x%08x\n",
 					 __func__, offset, size, *(uint32_t *)addr);
 		break;
 	case 2:
-		*(uint16_t *)addr = (uint16_t)rand();
+		*(uint16_t *)addr = (uint16_t)get_word();
 		lkl_printf("%s 0x%08x[%02x] = 0x%04x\n",
 					 __func__, offset, size, *(uint16_t *)addr);
 		break;
 	case 1:
-		*(uint8_t *)addr = (uint8_t)rand();
+		*(uint8_t *)addr = (uint8_t)get_byte();
 		lkl_printf("%s 0x%08x[%02x] = 0x%02x\n",
 					 __func__, offset, size, *(uint8_t *)addr);
 		break;
@@ -221,23 +222,23 @@ static int pci_resource_read(void *data, int offset, void *res, int size)
 
 	switch (size) {
 	case 8:
-		*(uint64_t *)res = (uint64_t)rand();
+		*(uint64_t *)res = (uint64_t)get_qword();
 		lkl_printf("%s 0x%08x[%02x] = 0x%016lx\n",
 					 __func__, offset, size, *(uint64_t *)res);
 		break;
 	case 4:
 		// print_trace();
-		*(uint32_t *)res = (uint32_t)rand();
+		*(uint32_t *)res = (uint32_t)get_dword();
 		lkl_printf("%s 0x%08x[%02x] = 0x%08x\n",
 					 __func__, offset, size, *(uint32_t *)res);
 		break;
 	case 2:
-		*(uint16_t *)res = (uint16_t)rand();
+		*(uint16_t *)res = (uint16_t)get_word();
 		lkl_printf("%s 0x%08x[%02x] = 0x%04x\n",
 					 __func__, offset, size, *(uint16_t *)res);
 		break;
 	case 1:
-		*(uint8_t *)res = (uint8_t)rand();
+		*(uint8_t *)res = (uint8_t)get_byte();
 		lkl_printf("%s 0x%08x[%02x] = 0x%02x\n",
 					 __func__, offset, size, *(uint8_t *)res);
 		break;
