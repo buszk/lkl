@@ -8,13 +8,15 @@
 #include <asm/host_ops.h>
 
 static unsigned long long boot_time;
+static unsigned long long delayed_nsecs = 0;
 
 void __ndelay(unsigned long nsecs)
 {
-	unsigned long long start = lkl_ops->time();
-
-	while (lkl_ops->time() < start + nsecs)
-		;
+	// Fuzzing optimization:
+	// Instead of wait, we return immediately and
+	// bookkeep the delayed time. Later call of
+	// lkl_ops->time() will add the delayed time
+	delayed_nsecs += nsecs;
 }
 
 void __udelay(unsigned long usecs)
@@ -33,7 +35,7 @@ void calibrate_delay(void)
 
 void read_persistent_clock(struct timespec *ts)
 {
-	*ts = ns_to_timespec(lkl_ops->time());
+	*ts = ns_to_timespec(lkl_ops->time() + delayed_nsecs);
 }
 
 /*
@@ -45,12 +47,12 @@ unsigned long long sched_clock(void)
 	if (!boot_time)
 		return 0;
 
-	return lkl_ops->time() - boot_time;
+	return lkl_ops->time() - boot_time + delayed_nsecs;
 }
 
 static u64 clock_read(struct clocksource *cs)
 {
-	return lkl_ops->time();
+	return lkl_ops->time() + delayed_nsecs;
 }
 
 static struct clocksource clocksource = {
