@@ -6,8 +6,9 @@ FAILED=0
 function test_kasan() {
     COUNTER=0
     for i in $(seq 20);do
-        ${DIR}/kasan-test-$1 2>&1 >$1.log
-        if [ $? -ne 0 ];then
+        /bin/sh -c ${DIR}/kasan-test-$1 >$1.log 2>&1
+        if [ $? -eq 0 ];then
+            let COUNTER=COUNTER+1
             break
         fi
         if grep -q "$2" $1.log; then
