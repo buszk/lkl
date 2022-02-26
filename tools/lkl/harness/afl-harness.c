@@ -36,18 +36,25 @@ void get_afl_input(char* fname) {
     assert(read(fd, input_buffer, input_size) == input_size);
     lkl_set_fuzz_input(input_buffer, input_size);
 }
+
 int main(int argc, char**argv) {
 	struct lkl_kasan_meta kasan_meta = {0};
 
     assert(argc > 1);
 
+    // atlantic
     pci_vender = 0x1d6a;
     pci_device = 0x1;
     pci_revision = 0x1;
 
+    // snic
+    // pci_vender = 0x1137;
+    // pci_device = 0x0046;
+    // pci_revision = 0x1;
+
 	fill_kasan_meta(&kasan_meta, "afl-harness");
 	lkl_kasan_init(&lkl_host_ops,
-			16 * 1024 * 1024,
+			128 * 1024 * 1024,
             kasan_meta.stack_base,
             kasan_meta.stack_size,
             kasan_meta.global_base,
@@ -55,7 +62,7 @@ int main(int argc, char**argv) {
             );
 
     lkl_delayed_pci_init();
-    lkl_start_kernel(&lkl_host_ops, "mem=16M loglevel=8 lkl_pci=vfio");
+    lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
     __AFL_INIT();
     get_afl_input(argv[1]);
     lkl_pci_init();
