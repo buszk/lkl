@@ -197,12 +197,26 @@ static int dummy_pci_read(struct lkl_pci_dev *dev, int where, int size,
 		*((uint32_t *)val) = REVISION_ID;		// revision_id
 		return size;
 	}
+	else if (where == 0xc && size == 1) {
+		*((uint8_t *)val) = 128;			//cache line size
+	}
 	else if (where == 0x10 && size == 4) { // BAR0
 		static int bar_1_count = 0;
 		if (bar_1_count == 0) {
 			//TODO: proper addr handling
 			*(uint32_t*) val = 0xfebd0000;
 			bar_1_count ++;
+		}
+		else {
+			*(uint32_t*) val = 0xffff0000;
+		}
+	}
+		else if (where == 0x14 && size == 4) { // BAR1
+		static int bar_2_count = 0;
+		if (bar_2_count == 0) {
+			//TODO: proper addr handling
+			*(uint32_t*) val = 0xfebf0000;
+			bar_2_count ++;
 		}
 		else {
 			*(uint32_t*) val = 0xffff0000;

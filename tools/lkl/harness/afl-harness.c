@@ -52,6 +52,11 @@ int main(int argc, char**argv) {
     // pci_device = 0x0046;
     // pci_revision = 0x1;
 
+    // 8139cp
+    // pci_vender = 0x10ec;
+    // pci_device = 0x8139;
+    // pci_revision = 0x20;
+
 	fill_kasan_meta(&kasan_meta, "afl-harness");
 	lkl_kasan_init(&lkl_host_ops,
 			128 * 1024 * 1024,
