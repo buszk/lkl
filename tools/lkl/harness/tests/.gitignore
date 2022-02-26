@@ -1,1 +1,2 @@
 kasan-test-[a-z]*
+!*.c

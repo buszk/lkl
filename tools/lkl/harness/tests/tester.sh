@@ -5,7 +5,7 @@ DIR=$(readlink -f "$(dirname "$0")")
 FAILED=0
 function test_kasan() {
     COUNTER=0
-    for i in $(seq 100);do
+    for i in $(seq 20);do
         ${DIR}/kasan-test-$1 2>&1 >$1.log
         if [ $? -ne 0 ];then
             break
