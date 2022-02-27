@@ -140,23 +140,23 @@ static void consistent_dma_read(void* addr, uint64_t offset, uint8_t size) {
 	switch (size) {
 	case 8:
 		*(uint64_t *)addr = (uint64_t)get_qword();
-		lkl_printf("%s 0x%08x[%02x] = 0x%016lx\n",
+		fprintf(stderr, "%s 0x%08lx[%02x] = 0x%016lx\n",
 					 __func__, offset, size, *(uint64_t *)addr);
 		break;
 	case 4:
 		// print_trace();
 		*(uint32_t *)addr = (uint32_t)get_dword();
-		lkl_printf("%s 0x%08x[%02x] = 0x%08x\n",
+		fprintf(stderr, "%s 0x%08lx[%02x] = 0x%08x\n",
 					 __func__, offset, size, *(uint32_t *)addr);
 		break;
 	case 2:
 		*(uint16_t *)addr = (uint16_t)get_word();
-		lkl_printf("%s 0x%08x[%02x] = 0x%04x\n",
+		fprintf(stderr, "%s 0x%08lx[%02x] = 0x%04x\n",
 					 __func__, offset, size, *(uint16_t *)addr);
 		break;
 	case 1:
 		*(uint8_t *)addr = (uint8_t)get_byte();
-		lkl_printf("%s 0x%08x[%02x] = 0x%02x\n",
+		fprintf(stderr, "%s 0x%08lx[%02x] = 0x%02x\n",
 					 __func__, offset, size, *(uint8_t *)addr);
 		break;
 	}
@@ -167,7 +167,7 @@ static unsigned long long dummy_map_page(struct lkl_pci_dev *dev, void *vaddr,
 {
 	unsigned long long ret;
 	ret = (unsigned long long)vaddr - dev->dma_map.vaddr;
-	lkl_printf("[%s][%s] vaddr: %p, size: %llx, ret: %llx\n",
+	fprintf(stderr, "[%s][%s] vaddr: %p, size: %lx, ret: %llx\n",
 			__func__, dma_type(consistent), vaddr, size, ret);
 	memset(vaddr, 'A', size);
 	if (consistent)
@@ -179,7 +179,7 @@ static void dummy_unmap_page(struct lkl_pci_dev *dev,
 			    unsigned long long dma_handle,
 				unsigned long size, int consistent)
 {
-	lkl_printf("[%s][%s] dma_handle: %p, size: %llx\n",
+	fprintf(stderr, "[%s][%s] dma_handle: %llx, size: %lx\n",
 			__func__, dma_type(consistent), dma_handle, size);
 	void *vaddr = (void*)(dma_handle + dev->dma_map.vaddr);
 	if (consistent)

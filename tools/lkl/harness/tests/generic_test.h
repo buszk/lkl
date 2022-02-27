@@ -38,6 +38,7 @@ static int kasan_test(short id) {
     lkl_delayed_pci_init();
     lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
     lkl_pci_init();
+    lkl_pci_driver_run();
     // lkl_sys_halt();
 
     return 0;

@@ -489,6 +489,10 @@ static void driver_deferred_probe_add_trigger(struct device *dev,
 		driver_deferred_probe_trigger();
 }
 
+extern int (*probe_func)(struct device*);
+extern int (*remove_func)(struct device*);
+extern struct device *fuzzed_dev;
+
 static int really_probe(struct device *dev, struct device_driver *drv)
 {
 	int ret = -EPROBE_DEFER;
@@ -545,9 +549,12 @@ re_probe:
 	}
 
 	if (dev->bus->probe) {
-		ret = dev->bus->probe(dev);
-		if (ret)
-			goto probe_failed;
+		printk(KERN_INFO "%s bus: %lx\n", __func__, (uint64_t)dev->bus);
+		printk(KERN_INFO "dev->bus->probe\n");
+		probe_func = dev->bus->probe;
+		remove_func = dev->bus->remove;
+		fuzzed_dev = dev;
+
 	} else if (drv->probe) {
 		ret = drv->probe(dev);
 		if (ret)
@@ -580,7 +587,7 @@ re_probe:
 
 	driver_bound(dev);
 	ret = 1;
-	pr_debug("bus: '%s': %s: bound device %s to driver %s\n",
+	pr_info("bus: '%s': %s: bound device %s to driver %s\n",
 		 drv->bus->name, __func__, dev_name(dev), drv->name);
 	goto done;
 

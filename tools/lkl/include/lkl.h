@@ -974,6 +974,7 @@ int lkl_delayed_pci_init(void);
 
 void lkl_set_fuzz_input(void*, size_t);
 
+void lkl_pci_driver_run(void);
 #ifdef __cplusplus
 }
 #endif

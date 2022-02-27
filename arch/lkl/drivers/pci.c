@@ -208,10 +208,11 @@ const struct dma_map_ops lkl_dma_ops = {
 	.dma_supported = lkl_dma_supported,
 };
 
+struct pci_bus *bus = 0;
+struct platform_device *__pdev = 0;
 static int lkl_pci_probe(struct platform_device *pdev)
 {
 	struct lkl_pci_dev *dev;
-	struct pci_bus *bus;
 
 	if (!lkl_ops->pci_ops || !pcidev_name)
 		return -1;
@@ -219,17 +220,17 @@ static int lkl_pci_probe(struct platform_device *pdev)
 	dev = lkl_ops->pci_ops->add(pcidev_name, (void *)memory_start,
 				    memory_end - memory_start);
 	if (!dev)
-		return -1;
+		return -2;
 
 	bus = pci_scan_bus(0, &lkl_pci_root_ops, (void *)dev);
 	if (!bus) {
 		lkl_ops->pci_ops->remove(dev);
-		return -1;
+		return -3;
 	}
 	pci_walk_bus(bus, lkl_pci_override_resource, NULL);
 	pci_bus_add_devices(bus);
 	dev_set_drvdata(&pdev->dev, bus);
-
+	__pdev = pdev;
 	return 0;
 }
 
@@ -256,35 +257,58 @@ int __init lkl_delayed_pci_init(void) {
 	return 1;
 }
 
+
+int (*probe_func)(struct device*) = 0;
+int (*remove_func)(struct device*) = 0;
+struct device *fuzzed_dev = 0;
+
+static struct platform_device *dev;
+
+
+void lkl_pci_driver_run(void)
+{
+	int ret;
+	ret = probe_func(fuzzed_dev);
+	if (ret)
+		goto end;
+	remove_func(fuzzed_dev);
+end:
+	;
+}
+
 int __init lkl_pci_init(void)
 {
 	int ret;
-	struct platform_device *dev;
 
 	if (is_running)
 		lkl_bug("lkl_delayed_pci_init() must be called before lkl_start_kernel()");
 
 	/*register a platform driver*/
+	printk(KERN_INFO "platform_driver_register\n");
 	ret = platform_driver_register(&lkl_pci_driver);
 	if (ret != 0)
 		goto end;
 
+	printk(KERN_INFO "platform_device_alloc\n");
 	dev = platform_device_alloc("lkl_pci", -1);
 	if (!dev) {
 		ret = -ENOMEM;
 		goto end;
 	}
 
+	printk(KERN_INFO "platform_device_add\n");
 	ret = platform_device_add(dev);
 	if (ret != 0)
 		goto error;
+	printk(KERN_INFO "platform_device_add end\n");
 end:
-	if (delayed_pci_init) {
-		is_running = 0;
-		lkl_cpu_put();
+	if (delayed_pci_init && !is_running) {
+		is_running = 1;
+		// lkl_cpu_put();
 	}
 	return 0;
 error:
+	printk(KERN_INFO "platform_device_put\n");
 	platform_device_put(dev);
 	goto end;
 }

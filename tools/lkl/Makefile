@@ -6,7 +6,7 @@ MAKEFLAGS += -r --no-print-directory
 KCONFIG?=defconfig
 LDLIBS=-lcapstone
 
-LDFLAGS += -fuse-ld=gold # essential for -fsanitize=fuzzer-no-link
+LDFLAGS += -fuse-ld=gold -rdynamic# essential for -fsanitize=fuzzer-no-link
 CLANG=/home/buszk/Workspace/git/AFLplusplus/afl-clang-fast
 CLANG=clang
 CLANG_ARGS= CONFIG_CC_IS_CLANG=y LLVM=1 CC=${CLANG} LD=ld.gold \

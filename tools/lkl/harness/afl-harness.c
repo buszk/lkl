@@ -22,18 +22,30 @@ extern short pci_device;
 extern short pci_revision;
 
 void *input_buffer =NULL;
-size_t input_size =0;
+ssize_t input_size =0;
+
 
 void get_afl_input(char* fname) {
     int fd;
     struct stat buf;
+    // fprintf(stderr, "%s\n", fname);
     fd = open(fname, O_RDONLY);
+    if (fd < 0)
+        perror(__func__), exit(1);
     fstat(fd, &buf);
     input_size = buf.st_size;
+    if (input_buffer)
+        free(input_buffer);
     input_buffer = malloc(input_size);
     if (!input_buffer)
         abort();
     assert(read(fd, input_buffer, input_size) == input_size);
+    close(fd);
+
+    // for (int i = 0; i < input_size; i++) {
+    //     fprintf(stderr, "%x", ((uint8_t*)input_buffer)[i]);
+    // }
+    // fprintf(stderr, "\n");
     lkl_set_fuzz_input(input_buffer, input_size);
 }
 
@@ -58,6 +70,8 @@ int main(int argc, char**argv) {
     // pci_revision = 0x20;
 
 	fill_kasan_meta(&kasan_meta, "afl-harness");
+    
+    __AFL_INIT();
 	lkl_kasan_init(&lkl_host_ops,
 			128 * 1024 * 1024,
             kasan_meta.stack_base,
@@ -68,9 +82,14 @@ int main(int argc, char**argv) {
 
     lkl_delayed_pci_init();
     lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
-    __AFL_INIT();
-    get_afl_input(argv[1]);
-    lkl_pci_init();
+        lkl_pci_init();
+    // static int counter = 0;
+    // while (counter ++ < 1000) {
+    while (__AFL_LOOP(1000)) {
+        get_afl_input(argv[1]);
+        lkl_pci_driver_run();
+        fprintf(stderr, "afl_loop iter ends\n");
+    }
     // lkl_sys_halt();
 
 	return 0;
