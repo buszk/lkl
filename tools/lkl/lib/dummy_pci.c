@@ -181,6 +181,9 @@ static void dummy_unmap_page(struct lkl_pci_dev *dev,
 {
 	lkl_printf("[%s][%s] dma_handle: %p, size: %llx\n",
 			__func__, dma_type(consistent), dma_handle, size);
+	void *vaddr = (void*)(dma_handle + dev->dma_map.vaddr);
+	if (consistent)
+		_unwatch_address(vaddr, PROT_WRITE);
 }
 
 
