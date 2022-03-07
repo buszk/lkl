@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <sys/types.h>
+#include <setjmp.h>
 
 #include "afl.h"
 #include "pmparser.h"
@@ -21,6 +22,8 @@ extern short pci_vender;
 extern short pci_device;
 extern short pci_revision;
 
+extern jmp_buf jmp_env;
+extern int jmp_env_set;
 void *input_buffer =NULL;
 ssize_t input_size =0;
 
@@ -87,7 +90,16 @@ int main(int argc, char**argv) {
     // while (counter ++ < 1000) {
     while (__AFL_LOOP(1000)) {
         get_afl_input(argv[1]);
-        lkl_pci_driver_run();
+        if (!setjmp(jmp_env)) {
+            jmp_env_set = 1;
+            lkl_pci_driver_run();
+            jmp_env_set = 0;
+            fprintf(stderr, "normal ends\n");
+        }
+        else {
+            lkl_pci_driver_remove();
+            fprintf(stderr, "jmp ends\n");
+        }
         fprintf(stderr, "afl_loop iter ends\n");
     }
     // lkl_sys_halt();

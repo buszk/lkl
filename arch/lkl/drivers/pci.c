@@ -276,6 +276,13 @@ end:
 	;
 }
 
+
+void lkl_pci_driver_remove(void)
+{
+	remove_func(fuzzed_dev);
+}
+
+
 int __init lkl_pci_init(void)
 {
 	int ret;

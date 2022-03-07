@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <setjmp.h>
 #include "memwatcher.h"
 #include "fuzz_input.h"
 
@@ -23,6 +24,8 @@ static void afl_coverage_off(void) {
     }
 }
 
+jmp_buf jmp_env;
+int jmp_env_set;
 static void afl_coverage_on(void) {
     if (!coverage) {
         coverage = 1;
@@ -34,6 +37,8 @@ static void afl_coverage_on(void) {
 
 static inline void input_end(void) {
     fprintf(stderr, "Too short\n");
+    if (jmp_env_set)
+        longjmp(jmp_env, 41);
     // alert fuzzer to collect coverage, then exit
     // raise(SIGSTOP);
     exit(1);

@@ -30,7 +30,7 @@ LDFLAGS_vmlinux += -r
 LKL_ENTRY_POINTS := lkl_start_kernel lkl_sys_halt lkl_syscall lkl_trigger_irq \
 	lkl_get_free_irq lkl_put_irq lkl_is_running lkl_bug lkl_printf \
 	lkl_kasan_init lkl_pci_init lkl_delayed_pci_init lkl_set_fuzz_input \
-	lkl_pci_driver_run
+	lkl_pci_driver_run lkl_pci_driver_remove
 
 ifeq ($(OUTPUT_FORMAT),elf32-i386)
 LKL_ENTRY_POINTS += \
