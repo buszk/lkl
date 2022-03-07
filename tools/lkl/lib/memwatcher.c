@@ -142,6 +142,14 @@ INLINE void _callbackinfo_unlock() {
     }
 }
 
+void _memwatcher_reset(void) {
+    _region_watchlist  = NULL;
+    _page_watchlist    = NULL;
+    _callback_list     = NULL;
+    pthread_spin_unlock(&page_list_lock);
+    pthread_spin_unlock(&cb_list_lock);
+}
+
 void _watch_page(void *addr, int prot) {
     printf("%s %p\n", __func__, addr);
     struct _watch_page *pagep;
@@ -322,13 +330,15 @@ static void _sigsegv_protector(int s, siginfo_t *sig_info, void *vcontext)
     #define PF_WRITE 1 << 1
     is_read = !(err_code & PF_WRITE);
 
-    DPRINTF("%s: Access Instr loc:  %p\n", __func__, sig_info->si_addr);
+    DPRINTF("%s: Access Instr loc:  %p\n", __func__, rip);
+    DPRINTF("%s:              mem:  %p\n", __func__, sig_info->si_addr);
     DPRINTF("%s:              len:  %d\n", __func__, len);
     DPRINTF("%s:              size: %d\n", __func__, size);
     DPRINTF("%s:              read: %d\n", __func__, is_read);
     
 
     struct _seg_callback *callback;
+    _cblist_lock();
 
     list_for_each(callback, _callback_list) {
         if ( sig_info->si_addr >= callback->page &&
@@ -336,7 +346,6 @@ static void _sigsegv_protector(int s, siginfo_t *sig_info, void *vcontext)
              break;
     }
 
-    _cblist_lock();
     _pagelist_lock();
 
     if (callback) {

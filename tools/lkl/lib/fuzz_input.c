@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include "memwatcher.h"
 #include "fuzz_input.h"
 
 
@@ -67,6 +68,7 @@ void get_size(size_t s, void* b) {
 }
 
 void lkl_set_fuzz_input(void* inp, size_t s) {
+    _memwatcher_reset();
     afl_coverage_on();
     buffer = inp;
     size = s;
