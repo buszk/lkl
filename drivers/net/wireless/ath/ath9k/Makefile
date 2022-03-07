@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: ISC
+AFLCOV := y
+KASAN_SANITIZE := y
 ath9k-y +=	beacon.o \
 		gpio.o \
 		init.o \
