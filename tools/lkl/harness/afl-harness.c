@@ -72,6 +72,11 @@ int main(int argc, char**argv) {
     // pci_device = 0x8139;
     // pci_revision = 0x20;
 
+    // ath9k
+    // pci_vender = 0x168c;
+    // pci_device = 0x0023;
+    // pci_revision = 0x0;
+
 	fill_kasan_meta(&kasan_meta, "afl-harness");
     
     __AFL_INIT();
