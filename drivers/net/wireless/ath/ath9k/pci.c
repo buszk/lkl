@@ -1001,6 +1001,7 @@ static int ath_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 err_init:
 	free_irq(sc->irq, sc);
 err_irq:
+	pcim_iounmap_regions(pdev, BIT(0));
 	ieee80211_free_hw(hw);
 	return ret;
 }
