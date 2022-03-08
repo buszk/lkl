@@ -3,7 +3,11 @@
 # also do not print "Entering directory..." messages from make
 .SUFFIXES:
 MAKEFLAGS += -r --no-print-directory
+ifneq (${AFL_LLVM_CMPLOG},1)
 KCONFIG?=defconfig
+else
+KCONFIG?=cmplog_defconfig
+endif
 LDLIBS=-lcapstone
 
 LDFLAGS += -fuse-ld=gold -rdynamic# essential for -fsanitize=fuzzer-no-link
@@ -76,8 +80,12 @@ else
 	$(Q)touch bin/stat
 endif
 
+configs:
+	cp ../../arch/lkl/configs/defconfig ../../arch/lkl/configs/cmplog_defconfig
+	echo "\nCONFIG_CMPLOG=y" >>../../arch/lkl/configs/cmplog_defconfig
+
 # rule to build lkl.o
-$(OUTPUT)lib/lkl.o: bin/stat
+$(OUTPUT)lib/lkl.o: bin/stat configs
 	$(Q)$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT) $(KCONFIG)
 	$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT)
 # this workaround is for arm32 linker (ld.gold)

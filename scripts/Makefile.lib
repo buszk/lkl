@@ -127,9 +127,14 @@ _c_flags += $(if $(patsubst n%,, \
 		$(CFLAGS_GCOV))
 endif
 
-CFLAGS_AFLCOV =  -integrated-as \
-		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./split-compares-pass.so \
+ifeq ($(CONFIG_CMPLOG),y)
+CFLAGS_AFLCOV = \
+		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./cmplog-instructions-pass.so \
+		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./cmplog-routines-pass.so
+endif
+CFLAGS_AFLCOV +=  -integrated-as \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./afl-llvm-pass.so
+
 _c_flags += $(if $(patsubst n%,, \
 		$(AFLCOV_$(basetarget).o)$(AFLCOV)), \
 		$(CFLAGS_AFLCOV), )
