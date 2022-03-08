@@ -1,2 +1,3 @@
 kasan-test-[a-z]*
+fuzz-test-[a-z]*
 !*.c

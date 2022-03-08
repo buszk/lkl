@@ -1,2 +1,4 @@
 kasan-test-soob-y += kasan-test-soob.o ../pmparser.o
 kasan-test-uaf-y += kasan-test-uaf.o ../pmparser.o
+fuzz-test-magic-value-y += fuzz-test-magic-value.o ../pmparser.o
+fuzz-test-magic-value-split-y += fuzz-test-magic-value-split.o ../pmparser.o

@@ -128,8 +128,8 @@ _c_flags += $(if $(patsubst n%,, \
 endif
 
 CFLAGS_AFLCOV =  -integrated-as \
-		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./afl-llvm-pass.so \
-		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./split-compares-pass.so
+		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./split-compares-pass.so \
+		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./afl-llvm-pass.so
 _c_flags += $(if $(patsubst n%,, \
 		$(AFLCOV_$(basetarget).o)$(AFLCOV)), \
 		$(CFLAGS_AFLCOV), )

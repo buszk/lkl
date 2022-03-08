@@ -42,3 +42,7 @@ progs-y += harness/tests/kasan-test-soob
 LDFLAGS_harness/tests/kasan-test-uaf-y += $(HOME)/Workspace/git/AFLplusplus/afl-llvm-rt-64.o
 progs-y += harness/tests/kasan-test-uaf
 
+LDFLAGS_harness/tests/fuzz-test-magic-value-y += $(HOME)/Workspace/git/AFLplusplus/afl-llvm-rt-64.o
+progs-y += harness/tests/fuzz-test-magic-value
+LDFLAGS_harness/tests/fuzz-test-magic-value-split-y += $(HOME)/Workspace/git/AFLplusplus/afl-llvm-rt-64.o
+progs-y += harness/tests/fuzz-test-magic-value-split
