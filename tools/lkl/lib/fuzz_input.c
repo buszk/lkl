@@ -37,14 +37,14 @@ static void afl_coverage_on(void) {
 
 static inline void input_end(void) {
     fprintf(stderr, "Too short\n");
-    if (jmp_env_set)
-        longjmp(jmp_env, 41);
-    // alert fuzzer to collect coverage, then exit
-    // raise(SIGSTOP);
-    exit(1);
+    // if (jmp_env_set)
+    //     longjmp(jmp_env, 41);
+    // // alert fuzzer to collect coverage, then exit
+    // // raise(SIGSTOP);
+    // exit(1);
 
     // or turn off coverage and fall to return random
-    // lkl_set_input_end(1);
+    lkl_set_input_end(1);
     afl_coverage_off();
 }
 

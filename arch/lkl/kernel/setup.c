@@ -197,7 +197,14 @@ static int __init fs_setup(void)
 }
 late_initcall(fs_setup);
 
+#include <asm/setjmp.h>
 extern int input_end;
+extern int jmp_buf_valid;
+extern struct jmp_buf_data jmp_buf;
 void lkl_set_input_end(int v) {
 	input_end = v;
+	if (v ==1 ) {
+		longjmp(&jmp_buf, 41);
+	}
 }
+

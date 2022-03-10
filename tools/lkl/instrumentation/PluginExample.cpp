@@ -83,7 +83,11 @@ public:
     virtual bool VisitFunctionDecl(FunctionDecl *func) {
         numFunctions++;
         string funcName = func->getNameInfo().getName().getAsString();
-        rewriter.InsertText(func->getBeginLoc(), "extern int input_end;\n", true, true);
+        string insert = "#include <asm/setjmp.h>\n" \
+                        "extern int input_end;\n" \
+                        "extern int jmp_buf_valid;\n" \
+                        "extern struct jmp_buf_data jmp_buf;\n";
+        rewriter.InsertText(func->getBeginLoc(), insert, true, true);
         // if (funcName == "do_math") {
         //     rewriter.ReplaceText(func->getLocation(), funcName.length(), "add5");
         //     errs() << "** Rewrote function def: " << funcName << "\n";
@@ -147,14 +151,16 @@ public:
                 return;
 
             std::string label = gt->getLabel()->getDeclName().getAsString();
-            std::string insert ="if (input_end) {\n" \
+            std::string insert ="if (input_end || setjmp(&jmp_buf)) {\n" \
+                                "  printk(KERN_INFO \"early returned\\n\");"
                                 "  " + rc + " = -5;\n" \
                                 "  goto " + label + ";\n" \
-                                "}\n";
+                                "}\n" \
+                                "jmp_buf_valid = 1;";
             rewriter.InsertText(bin->getBeginLoc(), insert, true, true);
 
             // rewriter.InsertText(Lexer::getLocForEndOfToken(i->getCond()->getSourceRange().getEnd()), ")", true);
-            // rewriter.InsertText(i->getCond()->getBeginLoc(), "input_end || ");
+            rewriter.InsertText(i->getBeginLoc(), "jmp_buf_valid = 0;", true, true);
         }
     }
 

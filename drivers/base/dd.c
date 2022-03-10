@@ -28,10 +28,14 @@
 #include <linux/pm_runtime.h>
 #include <linux/pinctrl/devinfo.h>
 
+#include <asm/setjmp.h>
+
 #include "base.h"
 #include "power/power.h"
 
 int input_end = 0;
+int jmp_buf_valid = 0;
+struct jmp_buf_data jmp_buf;
 /*
  * Deferred Probe infrastructure.
  *
