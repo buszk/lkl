@@ -83,10 +83,11 @@ public:
     virtual bool VisitFunctionDecl(FunctionDecl *func) {
         numFunctions++;
         string funcName = func->getNameInfo().getName().getAsString();
-        string insert = "#include <asm/setjmp.h>\n" \
-                        "extern int input_end;\n" \
-                        "extern int jmp_buf_valid;\n" \
-                        "extern struct jmp_buf_data jmp_buf;\n";
+        // string insert = "#include <asm/setjmp.h>\n" \
+        //                 "extern int input_end;\n" \
+        //                 "extern int jmp_buf_valid;\n" \
+        //                 "extern struct jmp_buf_data jmp_buf;\n";
+        string insert = "#include <linux/fuzz.h>\n";
         rewriter.InsertText(func->getBeginLoc(), insert, true, true);
         // if (funcName == "do_math") {
         //     rewriter.ReplaceText(func->getLocation(), funcName.length(), "add5");
@@ -131,7 +132,6 @@ public:
         if (!prev)
             return;
         if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
-        // if (const ValueStmt *bin = dyn_cast<ValueStmt>(GetPrevious(i))) {
             if (gt->getLabel()->getDeclName().getAsString().find("err") == std::string::npos)
                 return;
             errs() << "** found binop\n";
@@ -151,16 +151,14 @@ public:
                 return;
 
             std::string label = gt->getLabel()->getDeclName().getAsString();
-            std::string insert ="if (input_end || setjmp(&jmp_buf)) {\n" \
-                                "  printk(KERN_INFO \"early returned\\n\");"
+            std::string insert ="if (input_end || setjmp(push_jmp_buf())) {\n" \
+                                "  printk(KERN_INFO \"early returned\\n\");" \
                                 "  " + rc + " = -5;\n" \
                                 "  goto " + label + ";\n" \
-                                "}\n" \
-                                "jmp_buf_valid = 1;";
+                                "}\n";
             rewriter.InsertText(bin->getBeginLoc(), insert, true, true);
 
-            // rewriter.InsertText(Lexer::getLocForEndOfToken(i->getCond()->getSourceRange().getEnd()), ")", true);
-            rewriter.InsertText(i->getBeginLoc(), "jmp_buf_valid = 0;", true, true);
+            rewriter.InsertText(i->getBeginLoc(), "pop_jmp_buf();\n", true, true);
         }
     }
 
@@ -186,7 +184,7 @@ public:
                     return true;
                 if (const IfStmt *i = dyn_cast<IfStmt>(par)) {
                     errs() << "** found if\n";
-                    // VisitIfGoto(i, gt);
+                    VisitIfGoto(i, gt);
                 }                
             }
         }

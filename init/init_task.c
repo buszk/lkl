@@ -64,6 +64,9 @@ struct task_struct init_task
 	.thread_info	= INIT_THREAD_INFO(init_task),
 	.stack_refcount	= REFCOUNT_INIT(1),
 #endif
+	
+	.jmp_buf_count	= 0,
+	.jmp_buf_stack	= {0},
 	.state		= 0,
 	.stack		= init_stack,
 	.usage		= REFCOUNT_INIT(2),

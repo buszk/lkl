@@ -197,14 +197,23 @@ static int __init fs_setup(void)
 }
 late_initcall(fs_setup);
 
-#include <asm/setjmp.h>
+#include <linux/fuzz.h>
+#include <linux/sched.h>
 extern int input_end;
 extern int jmp_buf_valid;
 extern struct jmp_buf_data jmp_buf;
 void lkl_set_input_end(int v) {
+	struct jmp_buf_data *buf;
 	input_end = v;
-	if (v ==1 ) {
-		longjmp(&jmp_buf, 41);
+	if (v == 1) {
+		// longjmp(&jmp_buf, 41);
+		if ((buf = pop_jmp_buf()) != NULL) {
+			printk(KERN_INFO "rip: %lx\n", buf->__rip);
+			longjmp(buf, 41);
+		}
+	}
+	else if (v == 0) {
+		while(pop_jmp_buf()) {}
 	}
 }
 

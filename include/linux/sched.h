@@ -10,6 +10,7 @@
 #include <uapi/linux/sched.h>
 
 #include <asm/current.h>
+#include <asm/setjmp.h>
 
 #include <linux/pid.h>
 #include <linux/sem.h>
@@ -656,6 +657,10 @@ struct task_struct {
 	/* Per task flags (PF_*), defined further below: */
 	unsigned int			flags;
 	unsigned int			ptrace;
+
+	struct jmp_buf_data jmp_buf_stack[32];
+	int jmp_buf_count;
+
 
 #ifdef CONFIG_SMP
 	struct llist_node		wake_entry;
