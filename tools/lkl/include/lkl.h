@@ -977,6 +977,8 @@ void lkl_set_fuzz_input(void*, size_t);
 void lkl_pci_driver_run(void);
 void lkl_pci_driver_remove(void);
 
+void lkl_set_input_end(int);
+
 #ifdef __cplusplus
 }
 #endif

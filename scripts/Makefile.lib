@@ -133,7 +133,8 @@ CFLAGS_AFLCOV = \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./cmplog-routines-pass.so
 endif
 CFLAGS_AFLCOV +=  -integrated-as \
-		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./afl-llvm-pass.so
+		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./afl-llvm-pass.so \
+		-Xclang -load -Xclang $(HOME)/Workspace/git/lkl/tools/lkl/instrumentation/libPluginExample.so
 
 _c_flags += $(if $(patsubst n%,, \
 		$(AFLCOV_$(basetarget).o)$(AFLCOV)), \

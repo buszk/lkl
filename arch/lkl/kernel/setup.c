@@ -196,3 +196,8 @@ static int __init fs_setup(void)
 	return 0;
 }
 late_initcall(fs_setup);
+
+extern int input_end;
+void lkl_set_input_end(int v) {
+	input_end = v;
+}

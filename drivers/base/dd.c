@@ -31,6 +31,7 @@
 #include "base.h"
 #include "power/power.h"
 
+int input_end = 0;
 /*
  * Deferred Probe infrastructure.
  *

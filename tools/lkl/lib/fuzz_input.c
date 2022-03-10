@@ -44,6 +44,7 @@ static inline void input_end(void) {
     exit(1);
 
     // or turn off coverage and fall to return random
+    // lkl_set_input_end(1);
     afl_coverage_off();
 }
 
@@ -78,4 +79,5 @@ void lkl_set_fuzz_input(void* inp, size_t s) {
     buffer = inp;
     size = s;
     used = 0;
+    lkl_set_input_end(0);
 }

@@ -84,8 +84,11 @@ configs:
 	cp ../../arch/lkl/configs/defconfig ../../arch/lkl/configs/cmplog_defconfig
 	echo "\nCONFIG_CMPLOG=y" >>../../arch/lkl/configs/cmplog_defconfig
 
+instrument:
+	make -C instrumentation
+
 # rule to build lkl.o
-$(OUTPUT)lib/lkl.o: bin/stat configs
+$(OUTPUT)lib/lkl.o: bin/stat configs instrument
 	$(Q)$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT) $(KCONFIG)
 	$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT)
 # this workaround is for arm32 linker (ld.gold)
