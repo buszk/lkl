@@ -26,6 +26,10 @@ void dump_stack(void)
 }
 #endif
 
+void lkl_dump_stack(void) {
+	dump_stack();
+}
+
 void show_regs(struct pt_regs *regs)
 {
 }

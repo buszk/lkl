@@ -979,6 +979,8 @@ void lkl_pci_driver_remove(void);
 
 void lkl_set_input_end(int);
 
+void lkl_dump_stack(void);
+
 #ifdef __cplusplus
 }
 #endif

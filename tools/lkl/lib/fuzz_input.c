@@ -46,6 +46,10 @@ static inline void input_end(void) {
     // or turn off coverage and fall to return random
     lkl_set_input_end(1);
     afl_coverage_off();
+
+    // if (jmp_env_set)
+    //     longjmp(jmp_env, 41);
+    // lkl_dump_stack();
 }
 
 #define GET_FUNC(ty, nm) \
