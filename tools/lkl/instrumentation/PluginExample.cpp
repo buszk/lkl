@@ -19,6 +19,7 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <fstream>
 
 using namespace std;
 using namespace clang;
@@ -127,49 +128,137 @@ public:
 
     // }
 
+    string FindRV(const ReturnStmt *ret) {
+        if (!ret->getRetValue())
+            return "";
+        if (const ImplicitCastExpr *ic = dyn_cast<ImplicitCastExpr>(ret->getRetValue())) {
+            if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(ic->getSubExpr())) {
+                if (dre->getDecl()->getType()->isIntegerType()) {
+                    return dre->getNameInfo().getName().getAsString();
+                }
+            }
+        }
+        return "";
+    }
+
+    string FindRC(const IfStmt *i) {
+        if (const ImplicitCastExpr *ic = dyn_cast<ImplicitCastExpr>(i->getCond())) {
+            if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(ic->getSubExpr())) {
+                if (dre->getDecl()->getType()->isIntegerType()) {
+                    return dre->getNameInfo().getName().getAsString();
+                }
+            }
+        }
+        else if (const BinaryOperator *ib = dyn_cast<BinaryOperator>(i->getCond())) {
+            // to be implemented
+            if (ib->getOpcode() == BO_LE)
+                if (const ImplicitCastExpr *ic = dyn_cast<ImplicitCastExpr>(ib->getLHS())) {
+                    if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(ic->getSubExpr())) {
+                        if (dre->getDecl()->getType()->isIntegerType()) {
+                            return dre->getNameInfo().getName().getAsString();
+                        }
+                    }
+                }
+        }
+        return "";
+    }
+
+    void Modify(const BinaryOperator *bin, const Stmt *i, string end, string rc) {
+        static int count = 1000;
+        std::string insert ="if (input_end || setjmp(push_jmp_buf())) {\n" \
+                            "  printk(KERN_INFO \"early returned\\n\");\n" \
+                            "  " + rc + ";\n" \
+                            "  " + end + ";\n" \
+                            "}\n" \
+                            "printk(KERN_INFO \"%s: instr " + to_string(count++) + "\\n\", __func__);\n";
+        rewriter.InsertText(bin->getBeginLoc(), insert, true, true);
+
+        rewriter.InsertText(i->getBeginLoc(), "pop_jmp_buf();\n", true, true);
+    }
+
     void VisitIfGoto(const IfStmt *i, const GotoStmt *gt) {
+
+        if (gt->getLabel()->getDeclName().getAsString().find("err") == std::string::npos)
+            return;
         const Stmt *prev = GetPrevious(i);
         if (!prev)
             return;
         if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
-            if (gt->getLabel()->getDeclName().getAsString().find("err") == std::string::npos)
-                return;
             errs() << "** found binop\n";
-            std::string rc;
-            if (const ImplicitCastExpr *ic = dyn_cast<ImplicitCastExpr>(i->getCond())) {
-                if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(ic->getSubExpr())) {
-                    if (dre->getDecl()->getType()->isIntegerType()) {
-                        rc = dre->getNameInfo().getName().getAsString();
-                    }
-                }
-            }
-            else if (const BinaryOperator *ib = dyn_cast<BinaryOperator>(i->getCond())) {
-                
-            }
+            std::string rc = FindRC(i);
 
             if (rc == "")
                 return;
 
             std::string label = gt->getLabel()->getDeclName().getAsString();
-            std::string insert ="if (input_end || setjmp(push_jmp_buf())) {\n" \
-                                "  printk(KERN_INFO \"early returned\\n\");" \
-                                "  " + rc + " = -5;\n" \
-                                "  goto " + label + ";\n" \
-                                "}\n";
-            rewriter.InsertText(bin->getBeginLoc(), insert, true, true);
-
-            rewriter.InsertText(i->getBeginLoc(), "pop_jmp_buf();\n", true, true);
+            string end = "goto " + label;
+            rc += " = -5";
+            Modify(bin, i, end, rc);
         }
+    }
+
+    void VisitIfRet(const IfStmt *i, const ReturnStmt *ret) {
+        const Stmt *prev = GetPrevious(i);
+        if (!prev)
+            return;
+        if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
+            errs() << "** found binop\n";
+            std::string rc = FindRC(i);
+
+            if (rc == "" || rc != FindRV(ret))
+                return;
+
+            string end = "return " + rc;
+            rc += " = -5";
+            Modify(bin, i, end, rc);
+        }
+    }
+
+    void VisitLabel(const LabelStmt *l) {
+        std::string label = l->getDecl()->getNameAsString();
+        if (label.find("err") == std::string::npos)
+            return;
+
+        const Stmt *prev = GetPrevious(l);
+        if (!prev)
+            return;
+        if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
+            errs() << "** found binop\n";
+            string rc;
+            if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(bin->getLHS())) {
+                if (dre->getDecl()->getType()->isIntegerType()) {
+                    rc = dre->getNameInfo().getName().getAsString();
+                }
+            }
+            if (rc == "")
+                return;
+            string end = "goto " + label;
+            rc += " = -5";
+            Modify(bin, l, end, rc);
+        }
+
     }
 
     virtual bool VisitStmt(Stmt *st) {
         if (ReturnStmt *ret = dyn_cast<ReturnStmt>(st)) {
-            // rewriter.ReplaceText(ret->getRetValue()->getExprLoc(), 6, "val");
-            // errs() << "** Rewrote ReturnStmt\n";
-        }        
-        if (CallExpr *call = dyn_cast<CallExpr>(st)) {
-            // rewriter.ReplaceText(call->getExprLoc(), 7, "add5");
-            // errs() << "** Rewrote function call\n";
+            errs() << "** found ret\n";
+            if (const IfStmt *i = dyn_cast<IfStmt>(GetParent(st))) {
+                errs() << "** found if\n";
+                VisitIfRet(i, ret);
+            }
+            else if (const CompoundStmt *c = dyn_cast<CompoundStmt>(GetParent(st))) {
+                errs() << "** found compound\n";
+                const Stmt *par = GetParent(c);
+                if (!par)
+                    return true;
+                if (const IfStmt *i = dyn_cast<IfStmt>(par)) {
+                    errs() << "** found if\n";
+                    VisitIfRet(i, ret);
+                }
+            }
+        }
+        if (LabelStmt *l = dyn_cast<LabelStmt>(st)) {
+            VisitLabel(l);
         }
         if (GotoStmt *gt = dyn_cast<GotoStmt>(st)) {
             errs() << "** found goto\n";
@@ -269,6 +358,11 @@ protected:
         const RewriteBuffer *RewriteBuf =
             rewriter.getRewriteBufferFor(rewriter.getSourceMgr().getMainFileID());
 
+        fstream mod;
+        mod.open(_FileName + ".mod", fstream::out | fstream::trunc);
+        mod << string(RewriteBuf->begin(), RewriteBuf->end());
+        mod.close();
+        errs() << "file name: " << _FileName << "\n";
         compile(_CI, _FileName, RewriteBuf->begin(), RewriteBuf->end());
     }
 private:
