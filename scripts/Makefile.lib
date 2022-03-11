@@ -127,6 +127,7 @@ _c_flags += $(if $(patsubst n%,, \
 		$(CFLAGS_GCOV))
 endif
 
+_c_flags += -Wno-implicit-fallthrough -Wno-unknown-sanitizers
 ifeq ($(CONFIG_CMPLOG),y)
 CFLAGS_AFLCOV = \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./cmplog-instructions-pass.so \
