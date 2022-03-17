@@ -272,6 +272,7 @@ static int _instr_decode(void* pc, uint8_t *len, uint8_t *size) {
     DPRINTF("%s: access: %d\n", __func__, insn->detail->x86.operands[1].size);
     *len = insn->size;
     *size = insn->detail->x86.operands[1].size;
+    cs_free(insn, count);
     return 0;
 }
 

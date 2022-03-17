@@ -10,6 +10,7 @@ static void list_add(struct list_node **head, struct list_node *node) {
     if (*head)
         (*head)->prev = node;
     node->next = *head;
+    node->prev = NULL;
     *head = node;
 }
 #define LIST_DEL(head, node) \
