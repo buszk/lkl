@@ -38,7 +38,9 @@ void get_afl_input(char* fname) {
 }
 
 int main(int argc, char**argv) {
+    int i, ret, idx = 0;
 	struct lkl_kasan_meta kasan_meta = {0};
+    char* ifnames[2] = { "eth0", "wlan0" };
 
     assert(argc > 1);
 
@@ -72,10 +74,19 @@ int main(int argc, char**argv) {
             );
 
     lkl_delayed_pci_init();
-    lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
+    lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 net.ifnames=0 lkl_pci=vfio");
     __AFL_INIT();
     get_afl_input(argv[1]);
     lkl_pci_init();
+    for (i = 0; i < 2; i++) {
+        idx = lkl_ifname_to_ifindex(ifnames[i]);
+        printf("%s interface index: %d\n", ifnames[i], idx);
+        if (idx > 0) {
+            ret = lkl_if_up(idx);
+            printf("%s: lkl_if_up: %d\n", ifnames[i], ret);
+            break;
+        }
+    }
     // lkl_sys_halt();
 
 	return 0;
