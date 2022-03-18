@@ -974,13 +974,16 @@ int lkl_delayed_pci_init(void);
 
 void lkl_set_fuzz_input(void*, size_t);
 
-void lkl_pci_driver_run(void);
+int lkl_pci_driver_run(void);
 void lkl_pci_driver_remove(void);
 
 void lkl_set_input_end(int);
 
 void lkl_dump_stack(void);
 
+void fuzz_driver(void);
+
+int lkl_cpu_put(void);
 #ifdef __cplusplus
 }
 #endif

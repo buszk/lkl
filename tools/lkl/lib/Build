@@ -26,3 +26,4 @@ liblkl-y += ../../perf/pmu-events/jsmn.o
 liblkl-y += config.o
 liblkl-y += memwatcher.o
 liblkl-y += fuzz_input.o
+liblkl-y += fuzz.o

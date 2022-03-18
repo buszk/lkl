@@ -10,6 +10,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/scatterlist.h>
 #include <linux/mm.h>
+#include <linux/fuzz.h>
 #include <asm/cpu.h>
 #include <asm/host_ops.h>
 
@@ -265,21 +266,34 @@ struct device *fuzzed_dev = 0;
 static struct platform_device *dev;
 
 
-void lkl_pci_driver_run(void)
+int lkl_pci_driver_run(void)
 {
-	int ret;
+    int ret= 0;
+	ret = lkl_cpu_get();
+	if (ret < 0)
+		return ret;
+	// if (setjmp(push_jmp_buf())) {
+	// 	ret = -EIO;
+	// 	goto end;
+	// }
 	ret = probe_func(fuzzed_dev);
-	if (ret)
-		goto end;
-	remove_func(fuzzed_dev);
+	// pop_jmp_buf();
 end:
-	;
+	lkl_cpu_put();
+	return ret;
 }
 
 
 void lkl_pci_driver_remove(void)
 {
+	int ret;
+	ret = lkl_cpu_get();
+	if (ret < 0)
+		return;
+	printk(KERN_INFO "remove_func\n");
 	remove_func(fuzzed_dev);
+	printk(KERN_INFO "remove_func ends\n");
+	lkl_cpu_put();
 }
 
 
@@ -311,7 +325,7 @@ int __init lkl_pci_init(void)
 end:
 	if (delayed_pci_init && !is_running) {
 		is_running = 1;
-		// lkl_cpu_put();
+		lkl_cpu_put();
 	}
 	return 0;
 error:

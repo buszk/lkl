@@ -252,18 +252,29 @@ void _unwatch_address(void *addr, int prot) {
     _pagelist_unlock();
 }
 
+csh handle;
+static int init_csh() {
+    static int init = 0;
+    if (!init) {
+        if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) {
+            DPRINTF("%s: cs_open failed\n", __func__);
+            return -1;
+        }
+        if (cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON) != CS_ERR_OK) {
+            DPRINTF("%s: cs_option failed\n", __func__);
+            return -1;
+        }
+        init = 1;
+    }
+    return 0;
+}
+
 static int _instr_decode(void* pc, uint8_t *len, uint8_t *size) {
-    csh handle;
     cs_insn *insn;
     size_t count;
-    if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) {
-        DPRINTF("%s: cs_open failed\n", __func__);
-		return -1;
-    }
-    ;
-    if (cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON) != CS_ERR_OK) {
-        DPRINTF("%s: cs_option failed\n", __func__);
-		return -1;
+    if (init_csh()) {
+        DPRINTF("%s: init_csh failed\n", __func__);
+        return -1;
     }
     count = cs_disasm(handle, pc, 15, 1, 0, &insn);
     if (count < 1) {
@@ -280,6 +291,7 @@ static int _instr_decode(void* pc, uint8_t *len, uint8_t *size) {
     DPRINTF("%s: access: %d\n", __func__, insn->detail->x86.operands[1].size);
     *len = insn->size;
     *size = insn->detail->x86.operands[1].size;
+    cs_free(insn, count);
     return 0;
 }
 
