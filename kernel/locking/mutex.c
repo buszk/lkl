@@ -29,6 +29,7 @@
 #include <linux/interrupt.h>
 #include <linux/debug_locks.h>
 #include <linux/osq_lock.h>
+#include <linux/sched.h>
 
 #ifdef CONFIG_DEBUG_MUTEXES
 # include "mutex-debug.h"
@@ -256,6 +257,8 @@ void __sched mutex_lock(struct mutex *lock)
 
 	if (!__mutex_trylock_fast(lock))
 		__mutex_lock_slowpath(lock);
+	current->lock_count++;
+	// printk(KERN_INFO "%s\n", __func__);
 }
 EXPORT_SYMBOL(mutex_lock);
 #endif
@@ -707,6 +710,8 @@ static noinline void __sched __mutex_unlock_slowpath(struct mutex *lock, unsigne
  */
 void __sched mutex_unlock(struct mutex *lock)
 {
+	// printk(KERN_INFO "%s\n", __func__);
+	current->lock_count--;
 #ifndef CONFIG_DEBUG_LOCK_ALLOC
 	if (__mutex_unlock_fast(lock))
 		return;

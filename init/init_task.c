@@ -67,6 +67,8 @@ struct task_struct init_task
 	
 	.jmp_buf_count	= 0,
 	.jmp_buf_stack	= {0},
+	.lock_count	= 0,
+
 	.state		= 0,
 	.stack		= init_stack,
 	.usage		= REFCOUNT_INIT(2),

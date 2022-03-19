@@ -207,7 +207,7 @@ void lkl_set_input_end(int v) {
 	input_end = v;
 	if (v == 1) {
 		// longjmp(&jmp_buf, 41);
-		if ((buf = pop_jmp_buf()) != NULL) {
+		if ((buf = try_pop_jmp_buf()) != NULL) {
 			printk(KERN_INFO "rip: %lx\n", buf->__rip);
 			longjmp(buf, 41);
 		}

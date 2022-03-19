@@ -17,6 +17,7 @@ struct jmp_buf_data {
 	unsigned long __r13;
 	unsigned long __r14;
 	unsigned long __r15;
+	int __lock_count;
 };
 
 int setjmp(struct jmp_buf_data *jmp_buf);

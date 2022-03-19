@@ -658,9 +658,10 @@ struct task_struct {
 	unsigned int			flags;
 	unsigned int			ptrace;
 
+	/* jmp buffers for quick term */
 	struct jmp_buf_data jmp_buf_stack[32];
 	int jmp_buf_count;
-
+	int lock_count;
 
 #ifdef CONFIG_SMP
 	struct llist_node		wake_entry;

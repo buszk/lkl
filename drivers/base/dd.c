@@ -40,6 +40,7 @@ struct jmp_buf_data jmp_buf;
 
 struct jmp_buf_data*  push_jmp_buf(void) {
 	printk(KERN_INFO "%s: %d\n", __func__, current->jmp_buf_count);
+	current->jmp_buf_stack[current->jmp_buf_count].__lock_count = current->lock_count;
 	return &current->jmp_buf_stack[current->jmp_buf_count++];
 }
 
@@ -47,6 +48,18 @@ struct jmp_buf_data* pop_jmp_buf(void) {
 	printk(KERN_INFO "%s: %d\n", __func__, current->jmp_buf_count);
 	if (current->jmp_buf_count)
 		return &current->jmp_buf_stack[--current->jmp_buf_count];
+	return NULL;
+}
+
+struct jmp_buf_data* try_pop_jmp_buf(void) {
+	printk(KERN_INFO "%s: %d\n", __func__, current->jmp_buf_count);
+	if (current->jmp_buf_count)
+		if (current->jmp_buf_stack[current->jmp_buf_count-1].__lock_count == current->lock_count)
+			return &current->jmp_buf_stack[--current->jmp_buf_count];
+		else
+			printk(KERN_INFO "%s: Cannot pop because of unbalanced lock %d vs %d\n", \
+					__func__, current->lock_count, \
+					current->jmp_buf_stack[current->jmp_buf_count-1].__lock_count);
 	return NULL;
 }
 /*
