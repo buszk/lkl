@@ -73,10 +73,12 @@ inline void compile(clang::CompilerInstance *CI,
 class ExampleVisitor : public RecursiveASTVisitor<ExampleVisitor> {
 private:
     ASTContext *astContext; // used for getting additional AST info
+    bool isInt;
 
 public:
     explicit ExampleVisitor(CompilerInstance *CI) 
-      : astContext(&(CI->getASTContext())) // initialize private members
+      : astContext(&(CI->getASTContext())), // initialize private members
+      isInt(false)
     {
         rewriter.setSourceMgr(astContext->getSourceManager(), astContext->getLangOpts());
     }
@@ -90,6 +92,7 @@ public:
         //                 "extern struct jmp_buf_data jmp_buf;\n";
         string insert = "#include <linux/fuzz.h>\n";
         rewriter.InsertText(func->getBeginLoc(), insert, true, true);
+        isInt = func->getReturnType()->isIntegerType();
         // if (funcName == "do_math") {
         //     rewriter.ReplaceText(func->getLocation(), funcName.length(), "add5");
         //     errs() << "** Rewrote function def: " << funcName << "\n";
@@ -124,6 +127,22 @@ public:
         return nullptr;
     }
 
+    const Stmt* GetNext(const Stmt *st) {
+        const CompoundStmt *c = dyn_cast<CompoundStmt>(GetParent(st));
+        // assert(c);
+        if (!c)
+            return nullptr;
+        bool next = false;
+        for (auto it = c->body_begin(); it != c->body_end(); ++it) {
+            if (next)
+                return *it;
+            if (*it == st)
+                next = true;
+        }
+        // assert(false && "no previous statement found");
+        return nullptr;
+    }
+
     // SourceLocation getIfCondLoc(const IfStmt *i) {
 
     // }
@@ -142,6 +161,7 @@ public:
     }
 
     string FindRC(const IfStmt *i) {
+        /* case: if (ret) */
         if (const ImplicitCastExpr *ic = dyn_cast<ImplicitCastExpr>(i->getCond())) {
             if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(ic->getSubExpr())) {
                 if (dre->getDecl()->getType()->isIntegerType()) {
@@ -149,9 +169,9 @@ public:
                 }
             }
         }
+        /* case: if (ret < 0) */
         else if (const BinaryOperator *ib = dyn_cast<BinaryOperator>(i->getCond())) {
-            // to be implemented
-            if (ib->getOpcode() == BO_LE)
+            if (ib->getOpcode() == BO_LT) {
                 if (const ImplicitCastExpr *ic = dyn_cast<ImplicitCastExpr>(ib->getLHS())) {
                     if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(ic->getSubExpr())) {
                         if (dre->getDecl()->getType()->isIntegerType()) {
@@ -159,18 +179,47 @@ public:
                         }
                     }
                 }
+            }
         }
         return "";
     }
 
-    void Modify(const BinaryOperator *bin, const Stmt *i, string end, string rc) {
-        static int count = 1000;
+    string FindFname(const BinaryOperator *bin) {
+        if (const CallExpr *call = dyn_cast<CallExpr>(bin->getRHS())) {
+            if (call->getDirectCallee()) {
+                return call->getDirectCallee()->getNameInfo().getName().getAsString();
+            }
+            else {
+                return "*indrect_call*";
+            }
+        }
+        return "";
+    }
+
+    void Modify(const BinaryOperator *bin, string end, string rc, string fname) {
+        
+        const Stmt *next = GetNext(bin);
+        std::string insert ="if (input_end || setjmp(push_jmp_buf())) {\n" \
+                            "  printk(KERN_INFO \"%s: returned from " + fname + "\\n\", __func__);\n" \
+                            "  " + rc + ";\n" \
+                            "  " + end + ";\n" \
+                            "}\n" \
+                            "else {\n" \
+                            "  printk(KERN_INFO \"%s: calling  " + fname + "\\n\", __func__);\n  ";
+        rewriter.InsertText(bin->getBeginLoc(), insert, true, true);
+        insert ="  printk(KERN_INFO \"%s: finished " + fname + "\\n\", __func__);\n" \
+                "  pop_jmp_buf();\n" \
+                "}\n";
+        rewriter.InsertText(next->getBeginLoc(), insert, true, true);
+    }
+
+    void Modify(const BinaryOperator *bin, const Stmt *i, string end, string rc, string fname) {
         std::string insert ="if (input_end || setjmp(push_jmp_buf())) {\n" \
                             "  printk(KERN_INFO \"early returned\\n\");\n" \
                             "  " + rc + ";\n" \
                             "  " + end + ";\n" \
                             "}\n" \
-                            "printk(KERN_INFO \"%s: instr " + to_string(count++) + "\\n\", __func__);\n";
+                            "printk(KERN_INFO \"%s: instr " + fname + "\\n\", __func__);\n";
         rewriter.InsertText(bin->getBeginLoc(), insert, true, true);
 
         rewriter.InsertText(i->getBeginLoc(), "pop_jmp_buf();\n", true, true);
@@ -186,14 +235,39 @@ public:
         if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
             errs() << "** found binop\n";
             std::string rc = FindRC(i);
+            string fname = FindFname(bin);
 
-            if (rc == "")
+            if (rc == "" || fname == "")
                 return;
 
             std::string label = gt->getLabel()->getDeclName().getAsString();
             string end = "goto " + label;
             rc += " = -5";
-            Modify(bin, i, end, rc);
+            Modify(bin, end, rc, fname);
+        }
+        else if (const CallExpr *call = dyn_cast<CallExpr>(prev)) {
+            if (!call->getDirectCallee())
+                return;
+            string fname = call->getDirectCallee()->getNameInfo().getName().getAsString();
+            if (fname.find("unlock") == string::npos)
+                return;
+            const Stmt *second = GetPrevious(prev);
+            if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(second)) {
+                errs() << "** found binop\n";
+                std::string rc = FindRC(i);
+                string bfname = FindFname(bin);
+                if (rc == "" || bfname == "") {
+                    errs() << "** return code or fname not found\n";
+                    errs() << "** rc " << rc << "\n";
+                    errs() << "** fname " << bfname << "\n";
+                    return;
+                }
+
+                std::string label = gt->getLabel()->getDeclName().getAsString();
+                string end = "goto " + label;
+                rc += " = -5";
+                Modify(bin, "", rc, bfname);
+            }
         }
     }
 
@@ -203,14 +277,18 @@ public:
             return;
         if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
             errs() << "** found binop\n";
+            string end;
             std::string rc = FindRC(i);
+            string fname = FindFname(bin);
 
-            if (rc == "" || rc != FindRV(ret))
+            if (rc == "" || rc != FindRV(ret) || fname == "")
                 return;
 
-            string end = "return " + rc;
-            rc += " = -5";
-            Modify(bin, i, end, rc);
+            if (isInt) {
+                end = "return " + rc;
+                rc += " = -5";
+                Modify(bin, i, end, rc, fname);
+            }
         }
     }
 
@@ -230,11 +308,13 @@ public:
                     rc = dre->getNameInfo().getName().getAsString();
                 }
             }
-            if (rc == "")
+            string fname = FindFname(bin);
+            if (rc == "" || fname == "")
                 return;
             string end = "goto " + label;
             rc += " = -5";
-            Modify(bin, l, end, rc);
+            errs() << "** Calling modify\n";
+            Modify(bin, end, rc, fname);
         }
 
     }
