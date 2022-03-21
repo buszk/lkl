@@ -287,7 +287,7 @@ public:
             if (isInt) {
                 end = "return " + rc;
                 rc += " = -5";
-                Modify(bin, i, end, rc, fname);
+                Modify(bin, end, rc, fname);
             }
         }
     }
