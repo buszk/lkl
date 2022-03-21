@@ -75,9 +75,14 @@ int lkl_iomem_access(const volatile void *addr, void *res, int size, int write)
 	int offset = IOMEM_ADDR_TO_OFFSET(addr);
 	int ret;
 
-	if (index > MAX_IOMEM_REGIONS || !iomem_regions[index].ops ||
-	    offset + size > iomem_regions[index].size)
+	if (index > MAX_IOMEM_REGIONS || !iomem_regions[index].ops)
 		return -1;
+
+	if (offset + size > iomem_regions[index].size) {
+		lkl_printf("%s out-of-bound io access ( %x vs %x)\n", __func__,
+					offset, iomem_regions[index].size);
+		return -1;
+	}
 
 	if (write)
 		ret = iomem->ops->write(iomem->data, offset, res, size);
