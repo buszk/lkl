@@ -41,6 +41,31 @@ int set_target(const char* target) {
         return 0;
     }
 
+    // ath10k_pci
+    if (!strcmp(target, "ath10k_pci")) {
+        pci_vender = 0x168c;
+        pci_device = 0x003e;
+        pci_revision = 0x0;
+        return 0;
+    }
+
+    // rtwpci
+    if (!strcmp(target, "rtwpci")) {
+        pci_vender = 0x10ec;
+        pci_device = 0xB822;
+        pci_revision = 0x0;
+        return 0;
+    }
+
+    // stmmac_pci
+    if (!strcmp(target, "stmmac_pci")) {
+        pci_vender = 0x8086;
+        pci_device = 0x0937;
+        pci_revision = 0x1;
+        return 0;
+    }
+
+
     if (getenv("PCI_VENDOR") &&
         atoi(getenv("PCI_VENDOR"))) {
         pci_vender = atoi(getenv("PCI_VENDOR"));

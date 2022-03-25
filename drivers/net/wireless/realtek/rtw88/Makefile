@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-
+AFLCOV := y
+KASAN_SANITIZE := y
 obj-$(CONFIG_RTW88_CORE)	+= rtw88.o
 rtw88-y += main.o \
 	   mac80211.o \
