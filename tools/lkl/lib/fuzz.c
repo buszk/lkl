@@ -26,6 +26,8 @@ void fuzz_driver(void) {
             if (idx > 0) {
                 ret = lkl_if_up(idx);
                 fprintf(stderr, "%s: lkl_if_up: %d\n", ifnames[i], ret);
+                ret = lkl_if_down(idx);
+                fprintf(stderr, "%s: lkl_if_down: %d\n", ifnames[i], ret);
                 break;
             }
         }
