@@ -988,4 +988,11 @@ int lkl_cpu_put(void);
 }
 #endif
 
+
+#define MODE_DEFAULT 0
+#define MODE_FORKSERVER 1
+#define MODE_PERSISTENT 2
+
+void set_fuzz_mode(int);
+
 #endif

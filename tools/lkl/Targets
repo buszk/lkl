@@ -35,6 +35,9 @@ progs-$(LKL_LIBFUZZER) += harness/libfuzzer-harness
 
 LDFLAGS_harness/afl-harness-y += $(HOME)/Workspace/git/AFLplusplus/afl-llvm-rt-64.o -rdynamic
 progs-y += harness/afl-harness
+LDFLAGS_harness/afl-forkserver-harness-y += $(HOME)/Workspace/git/AFLplusplus/afl-llvm-rt-64.o -rdynamic
+progs-y += harness/afl-forkserver-harness
+
 
 LDFLAGS_harness/tests/kasan-test-soob-y += $(HOME)/Workspace/git/AFLplusplus/afl-llvm-rt-64.o
 progs-y += harness/tests/kasan-test-soob

@@ -12,6 +12,8 @@ uint8_t* buffer;
 size_t size = 0;
 size_t used = 0;
 
+static int fuzz_mode = MODE_DEFAULT;
+
 static int coverage = 0;
 int __afl_selective_coverage = 1;
 static void afl_coverage_off(void) {
@@ -37,19 +39,23 @@ static void afl_coverage_on(void) {
 
 static inline void input_end(void) {
     fprintf(stderr, "Too short\n");
-    // if (jmp_env_set)
-    //     longjmp(jmp_env, 41);
-    // // alert fuzzer to collect coverage, then exit
-    // // raise(SIGSTOP);
-    // exit(1);
+    switch (fuzz_mode)
+    {
+    case MODE_DEFAULT:
+    case MODE_PERSISTENT:
+        afl_coverage_off();
+        lkl_set_input_end(1);
+        // if (jmp_env_set)
+        //     longjmp(jmp_env, 41);
+        // lkl_dump_stack();
 
-    // or turn off coverage and fall to return random
-    afl_coverage_off();
-    lkl_set_input_end(1);
-
-    // if (jmp_env_set)
-    //     longjmp(jmp_env, 41);
-    // lkl_dump_stack();
+        break;
+    case MODE_FORKSERVER:
+        exit(1);
+        break;
+    default:
+        break;
+    }
 }
 
 #define GET_FUNC(ty, nm) \
@@ -84,4 +90,8 @@ void lkl_set_fuzz_input(void* inp, size_t s) {
     size = s;
     used = 0;
     lkl_set_input_end(0);
+}
+
+void set_fuzz_mode(int mode) {
+    fuzz_mode = mode;
 }
