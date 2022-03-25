@@ -81,25 +81,12 @@ public:
       isInt(false)
     {
         rewriter.setSourceMgr(astContext->getSourceManager(), astContext->getLangOpts());
+        rewriter.InsertText(astContext->getSourceManager().getLocForStartOfFile(astContext->getSourceManager().getMainFileID()), 
+            "#include <linux/fuzz.h>\n");
     }
 
     virtual bool VisitFunctionDecl(FunctionDecl *func) {
-        numFunctions++;
-        string funcName = func->getNameInfo().getName().getAsString();
-        // string insert = "#include <asm/setjmp.h>\n" \
-        //                 "extern int input_end;\n" \
-        //                 "extern int jmp_buf_valid;\n" \
-        //                 "extern struct jmp_buf_data jmp_buf;\n";
-        string insert = "#include <linux/fuzz.h>\n";
-        rewriter.InsertText(func->getBeginLoc(), insert, true, true);
         isInt = func->getReturnType()->isIntegerType();
-        // if (funcName == "do_math") {
-        //     rewriter.ReplaceText(func->getLocation(), funcName.length(), "add5");
-        //     errs() << "** Rewrote function def: " << funcName << "\n";
-        // }
-        // for (auto st: func->decls()) {
-        //     errs() << st << "\n";
-        // }
         return true;
     }
 
@@ -233,7 +220,7 @@ public:
         if (!prev)
             return;
         if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
-            errs() << "** found binop\n";
+            // errs() << "** found binop\n";
             std::string rc = FindRC(i);
             string fname = FindFname(bin);
 
@@ -253,13 +240,13 @@ public:
                 return;
             const Stmt *second = GetPrevious(prev);
             if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(second)) {
-                errs() << "** found binop\n";
+                // errs() << "** found binop\n";
                 std::string rc = FindRC(i);
                 string bfname = FindFname(bin);
                 if (rc == "" || bfname == "") {
-                    errs() << "** return code or fname not found\n";
-                    errs() << "** rc " << rc << "\n";
-                    errs() << "** fname " << bfname << "\n";
+                    // errs() << "** return code or fname not found\n";
+                    // errs() << "** rc " << rc << "\n";
+                    // errs() << "** fname " << bfname << "\n";
                     return;
                 }
 
@@ -276,7 +263,7 @@ public:
         if (!prev)
             return;
         if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
-            errs() << "** found binop\n";
+            // errs() << "** found binop\n";
             string end;
             std::string rc = FindRC(i);
             string fname = FindFname(bin);
@@ -301,7 +288,7 @@ public:
         if (!prev)
             return;
         if (const BinaryOperator *bin = dyn_cast<BinaryOperator>(prev)) {
-            errs() << "** found binop\n";
+            // errs() << "** found binop\n";
             string rc;
             if (const DeclRefExpr *dre = dyn_cast<DeclRefExpr>(bin->getLHS())) {
                 if (dre->getDecl()->getType()->isIntegerType()) {
@@ -313,7 +300,7 @@ public:
                 return;
             string end = "goto " + label;
             rc += " = -5";
-            errs() << "** Calling modify\n";
+            // errs() << "** Calling modify\n";
             Modify(bin, end, rc, fname);
         }
 
@@ -321,18 +308,18 @@ public:
 
     virtual bool VisitStmt(Stmt *st) {
         if (ReturnStmt *ret = dyn_cast<ReturnStmt>(st)) {
-            errs() << "** found ret\n";
+            // errs() << "** found ret\n";
             if (const IfStmt *i = dyn_cast<IfStmt>(GetParent(st))) {
-                errs() << "** found if\n";
+                // errs() << "** found if\n";
                 VisitIfRet(i, ret);
             }
             else if (const CompoundStmt *c = dyn_cast<CompoundStmt>(GetParent(st))) {
-                errs() << "** found compound\n";
+                // errs() << "** found compound\n";
                 const Stmt *par = GetParent(c);
                 if (!par)
                     return true;
                 if (const IfStmt *i = dyn_cast<IfStmt>(par)) {
-                    errs() << "** found if\n";
+                    // errs() << "** found if\n";
                     VisitIfRet(i, ret);
                 }
             }
@@ -341,18 +328,18 @@ public:
             VisitLabel(l);
         }
         if (GotoStmt *gt = dyn_cast<GotoStmt>(st)) {
-            errs() << "** found goto\n";
+            // errs() << "** found goto\n";
             if (const IfStmt *i = dyn_cast<IfStmt>(GetParent(st))) {
-                errs() << "** found if\n";
+                // errs() << "** found if\n";
                 VisitIfGoto(i, gt);
             }
             else if (const CompoundStmt *c = dyn_cast<CompoundStmt>(GetParent(st))) {
-                errs() << "** found compound\n";
+                // errs() << "** found compound\n";
                 const Stmt *par = GetParent(c);
                 if (!par)
                     return true;
                 if (const IfStmt *i = dyn_cast<IfStmt>(par)) {
-                    errs() << "** found if\n";
+                    // errs() << "** found if\n";
                     VisitIfGoto(i, gt);
                 }                
             }
@@ -438,6 +425,8 @@ protected:
         const RewriteBuffer *RewriteBuf =
             rewriter.getRewriteBufferFor(rewriter.getSourceMgr().getMainFileID());
 
+        if (!RewriteBuf)
+            return;
         fstream mod;
         mod.open(_FileName + ".mod", fstream::out | fstream::trunc);
         mod << string(RewriteBuf->begin(), RewriteBuf->end());
