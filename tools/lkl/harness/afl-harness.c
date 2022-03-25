@@ -17,13 +17,11 @@
 #include "pmparser.h"
 
 
-extern short pci_vender;
-extern short pci_device;
-extern short pci_revision;
 
 void *input_buffer =NULL;
 ssize_t input_size =0;
 
+int set_target(const char *);
 
 void get_afl_input(char* fname) {
     int fd;
@@ -52,27 +50,12 @@ void get_afl_input(char* fname) {
 int main(int argc, char**argv) {
 	struct lkl_kasan_meta kasan_meta = {0};
 
-    assert(argc > 1);
+    assert(argc > 2);
 
-    // atlantic
-    pci_vender = 0x1d6a;
-    pci_device = 0x1;
-    pci_revision = 0x1;
-
-    // snic
-    // pci_vender = 0x1137;
-    // pci_device = 0x0046;
-    // pci_revision = 0x1;
-
-    // 8139cp
-    // pci_vender = 0x10ec;
-    // pci_device = 0x8139;
-    // pci_revision = 0x20;
-
-    // ath9k
-    // pci_vender = 0x168c;
-    // pci_device = 0x0023;
-    // pci_revision = 0x0;
+    if (set_target(argv[1])) {
+        fprintf(stderr, "Please provide a device driver target to fuzz");
+        abort();
+    }
 
 	fill_kasan_meta(&kasan_meta, "afl-harness");
     
@@ -91,7 +74,7 @@ int main(int argc, char**argv) {
     // static int counter = 0;
     // while (counter ++ < 1000) {
     while (__AFL_LOOP(1000)) {
-        get_afl_input(argv[1]);
+        get_afl_input(argv[2]);
         fuzz_driver();
         fprintf(stderr, "afl_loop iter ends\n");
     }
