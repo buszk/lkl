@@ -1015,6 +1015,7 @@ static void ath_pci_remove(struct pci_dev *pdev)
 		sc->sc_ah->ah_flags |= AH_UNPLUGGED;
 	ath9k_deinit_device(sc);
 	free_irq(sc->irq, sc);
+	pcim_iounmap_regions(pdev, BIT(0));
 	ieee80211_free_hw(sc->hw);
 }
 
