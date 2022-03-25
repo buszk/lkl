@@ -9,6 +9,7 @@
 #include <unistd.h> 
 #include <pthread.h>
 #include <ucontext.h>
+#include <lkl.h>
 
 #include <capstone/capstone.h>
 
@@ -440,8 +441,9 @@ static void _sigsegv_protector(int s, siginfo_t *sig_info, void *vcontext)
     PRINTF("%s:              len:  %d\n", __func__, len);
     PRINTF("%s:              size: %d\n", __func__, size);
     PRINTF("%s:              read: %d\n", __func__, is_read);
+    lkl_dump_stack();
+    abort();
     _real_segfault();
-
 
 release:
     // ignore exit above
