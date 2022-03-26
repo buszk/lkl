@@ -68,9 +68,7 @@ int main(int argc, char**argv) {
             kasan_meta.global_size
             );
 
-    lkl_delayed_pci_init();
     lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
-    lkl_pci_init();
     // static int counter = 0;
     // while (counter ++ < 1000) {
     while (__AFL_LOOP(1000)) {

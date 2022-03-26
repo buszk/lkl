@@ -52,11 +52,9 @@ int func(int argc, char**argv) {
             kasan_meta.global_size
             );
 
-    lkl_delayed_pci_init();
-    lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
     __AFL_INIT();
     get_afl_input(argv[1]);
-    lkl_pci_init();
+    lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
     // lkl_sys_halt();
 
 	return 0;

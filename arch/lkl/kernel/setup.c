@@ -18,7 +18,6 @@ struct lkl_host_operations *lkl_ops;
 static char cmd_line[COMMAND_LINE_SIZE];
 static void *init_sem;
 int is_running;
-int delayed_pci_init = false;
 void (*pm_power_off)(void) = NULL;
 static unsigned long mem_size = 64 * 1024 * 1024;
 
@@ -90,10 +89,8 @@ int __init lkl_start_kernel(struct lkl_host_operations *ops,
 	current_thread_info()->tid = lkl_ops->thread_self();
 	lkl_cpu_change_owner(current_thread_info()->tid);
 
-	if (!delayed_pci_init) {
-		lkl_cpu_put();
-		is_running = 1;
-	}
+	// lkl_cpu_put();
+	is_running = 1;
 
 	return 0;
 

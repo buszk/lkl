@@ -102,9 +102,9 @@ long lkl_syscall(long no, long *params)
 	struct task_struct *task = host0;
 	long ret;
 
-	ret = lkl_cpu_get();
-	if (ret < 0)
-		return ret;
+	// ret = lkl_cpu_get();
+	// if (ret < 0)
+	// 	return ret;
 
 	if (lkl_ops->tls_get) {
 		task = lkl_ops->tls_get(task_key);
@@ -126,7 +126,7 @@ long lkl_syscall(long no, long *params)
 	}
 
 out:
-	lkl_cpu_put();
+	// lkl_cpu_put();
 
 	return ret;
 }

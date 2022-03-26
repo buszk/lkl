@@ -959,18 +959,6 @@ unsigned long lkl_kasan_init(struct lkl_host_operations* ops,
         unsigned long global_size);
 #endif
 
-/**
- * lkl_pci_init - delayed initialize the PCI bus
- *
- * must be called after lkl_start_kernel
- */
-int lkl_pci_init(void);
-/**
- * lkl_delayed_pci_init - configure delayed PCI bus
- *
- * must be called before lkl_start_kernel
- */
-int lkl_delayed_pci_init(void);
 
 void lkl_set_fuzz_input(void*, size_t);
 

@@ -16,7 +16,6 @@
 
 
 extern int is_running;
-extern int delayed_pci_init;
 
 static int lkl_pci_generic_read(struct pci_bus *bus, unsigned int devfn,
 				int where, int size, u32 *val)
@@ -251,14 +250,6 @@ static struct platform_driver lkl_pci_driver = {
 	.shutdown = lkl_pci_shutdown,
 };
 
-int __init lkl_delayed_pci_init(void) {
-	if (is_running)
-		lkl_bug("lkl_delayed_pci_init() must be called before lkl_start_kernel()");
-	delayed_pci_init = 1;
-	return 1;
-}
-
-
 int (*probe_func)(struct device*) = 0;
 int (*remove_func)(struct device*) = 0;
 struct device *fuzzed_dev = 0;
@@ -268,18 +259,13 @@ static struct platform_device *dev;
 
 int lkl_pci_driver_run(void)
 {
-    int ret= 0;
-	ret = lkl_cpu_get();
-	if (ret < 0)
-		return ret;
-	// if (setjmp(push_jmp_buf())) {
-	// 	ret = -EIO;
-	// 	goto end;
-	// }
+    int ret = 0;
+	// ret = lkl_cpu_get();
+	// if (ret < 0)
+	// 	return ret;
 	ret = probe_func(fuzzed_dev);
-	// pop_jmp_buf();
 end:
-	lkl_cpu_put();
+	// lkl_cpu_put();
 	return ret;
 }
 
@@ -287,51 +273,38 @@ end:
 void lkl_pci_driver_remove(void)
 {
 	int ret;
-	ret = lkl_cpu_get();
-	if (ret < 0)
-		return;
+	// ret = lkl_cpu_get();
+	// if (ret < 0)
+	// 	return;
 	printk(KERN_INFO "remove_func\n");
 	remove_func(fuzzed_dev);
 	printk(KERN_INFO "remove_func ends\n");
-	lkl_cpu_put();
+	// lkl_cpu_put();
 }
 
 
 int __init lkl_pci_init(void)
 {
 	int ret;
-
-	if (is_running)
-		lkl_bug("lkl_delayed_pci_init() must be called before lkl_start_kernel()");
+	struct platform_device *dev;
 
 	/*register a platform driver*/
-	printk(KERN_INFO "platform_driver_register\n");
 	ret = platform_driver_register(&lkl_pci_driver);
 	if (ret != 0)
-		goto end;
+		return ret;
 
-	printk(KERN_INFO "platform_device_alloc\n");
 	dev = platform_device_alloc("lkl_pci", -1);
-	if (!dev) {
-		ret = -ENOMEM;
-		goto end;
-	}
+	if (!dev)
+		return -ENOMEM;
 
-	printk(KERN_INFO "platform_device_add\n");
 	ret = platform_device_add(dev);
 	if (ret != 0)
 		goto error;
-	printk(KERN_INFO "platform_device_add end\n");
-end:
-	if (delayed_pci_init && !is_running) {
-		is_running = 1;
-		lkl_cpu_put();
-	}
+
 	return 0;
 error:
-	printk(KERN_INFO "platform_device_put\n");
 	platform_device_put(dev);
-	goto end;
+	return ret;
 }
 
-// subsys_initcall(lkl_pci_init);
+subsys_initcall(lkl_pci_init);
