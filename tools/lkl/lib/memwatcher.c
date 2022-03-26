@@ -90,6 +90,7 @@ pthread_spinlock_t cb_list_lock;
 
 uint32_t count;
 struct sigaction sa;
+static int in_cb = 0;
 
 void print_trace (void);
 static void _sigsegv_protector(int s, siginfo_t *sig_info, void *context);
@@ -141,6 +142,10 @@ INLINE void _callbackinfo_unlock() {
     if ((ret = pthread_spin_unlock(&cb_list_lock)) != 0) {
         PERROR("unlock");
     }
+}
+
+int _in_cb(void) {
+    return in_cb;
 }
 
 void _memwatcher_reset(void) {
@@ -410,7 +415,9 @@ static void _sigsegv_protector(int s, siginfo_t *sig_info, void *vcontext)
         // if callback exists, call here to modify the memory
         if (is_read && watched_region && watched_region->mem_read_cb) {
             offset = sig_info->si_addr - watched_region->addr;
+            in_cb = 1;
             watched_region->mem_read_cb((void*)sig_info->si_addr, offset, size);
+            in_cb = 0;
         }
 
         void *payload_page = (void*)_alloc_payload(rip, len);

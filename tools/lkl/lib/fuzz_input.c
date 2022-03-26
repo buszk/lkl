@@ -44,7 +44,9 @@ static inline void input_end(void) {
     case MODE_DEFAULT:
     case MODE_PERSISTENT:
         afl_coverage_off();
-        lkl_set_input_end(1);
+        /* if not inside segfault handler */
+        if (!_in_cb())
+            lkl_set_input_end(1);
         // if (jmp_env_set)
         //     longjmp(jmp_env, 41);
         // lkl_dump_stack();
