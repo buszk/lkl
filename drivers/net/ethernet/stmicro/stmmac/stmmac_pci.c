@@ -271,7 +271,7 @@ static int stmmac_pci_probe(struct pci_dev *pdev,
 
 	ret = info->setup(pdev, plat);
 	if (ret)
-		return ret;
+		goto err;
 
 	pci_enable_msi(pdev);
 
@@ -280,7 +280,18 @@ static int stmmac_pci_probe(struct pci_dev *pdev,
 	res.wol_irq = pdev->irq;
 	res.irq = pdev->irq;
 
-	return stmmac_dvr_probe(&pdev->dev, plat, &res);
+	ret = stmmac_dvr_probe(&pdev->dev, plat, &res);
+	if (ret)
+		goto err;
+	return 0;
+err:
+	for (i = 0; i <= PCI_STD_RESOURCE_END; i++) {
+		if (pci_resource_len(pdev, i) == 0)
+			continue;
+		pcim_iounmap_regions(pdev, BIT(i));
+		break;
+	}
+	return ret;
 }
 
 /**
