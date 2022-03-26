@@ -1,6 +1,7 @@
 #include <lkl.h>
 #include <stdio.h>
 #include <setjmp.h>
+#include "fuzz_input.h"
 
 extern jmp_buf jmp_env;
 extern int jmp_env_set;
@@ -19,6 +20,9 @@ void fuzz_driver(void) {
         jmp_env_set = 0;
 
         // run ifup
+        if (overflow)
+            goto end_remove;
+
         fprintf(stderr, "Run interface up\n");
         for (i = 0; i < 2; i++) {
             idx = lkl_ifname_to_ifindex(ifnames[i]);
@@ -31,7 +35,7 @@ void fuzz_driver(void) {
                 break;
             }
         }
-
+end_remove:
         lkl_pci_driver_remove();
 end:
         fprintf(stderr, "normal ends\n");

@@ -11,6 +11,7 @@
 uint8_t* buffer;
 size_t size = 0;
 size_t used = 0;
+int overflow = 0;
 
 static int fuzz_mode = MODE_DEFAULT;
 
@@ -47,6 +48,7 @@ static inline void input_end(void) {
         /* if not inside segfault handler */
         if (!_in_cb())
             lkl_set_input_end(1);
+        overflow = 1;
         // if (jmp_env_set)
         //     longjmp(jmp_env, 41);
         // lkl_dump_stack();
@@ -86,6 +88,7 @@ void get_size(size_t s, void* b) {
 }
 
 void lkl_set_fuzz_input(void* inp, size_t s) {
+    overflow = 0;
     _memwatcher_reset();
     afl_coverage_on();
     buffer = inp;
