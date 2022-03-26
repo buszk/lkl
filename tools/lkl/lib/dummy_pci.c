@@ -204,21 +204,32 @@ static int dummy_pci_read(struct lkl_pci_dev *dev, int where, int size,
 		*((uint8_t *)val) = 128;			//cache line size
 	}
 	else if (where == 0x10 && size == 4) { // BAR0
+		static int bar_0_count = 0;
+		if (bar_0_count == 0) {
+			//TODO: proper addr handling
+			*(uint32_t*) val = 0xfef0000;
+			bar_0_count ++;
+		}
+		else {
+			*(uint32_t*) val = 0xfff00000;
+		}
+	}
+	else if (where == 0x14 && size == 4) { // BAR1
 		static int bar_1_count = 0;
 		if (bar_1_count == 0) {
 			//TODO: proper addr handling
-			*(uint32_t*) val = 0xfee0000;
+			*(uint32_t*) val = 0xfee00000;
 			bar_1_count ++;
 		}
 		else {
 			*(uint32_t*) val = 0xfff00000;
 		}
 	}
-		else if (where == 0x14 && size == 4) { // BAR1
+	else if (where == 0x18 && size == 4) { // BAR2
 		static int bar_2_count = 0;
 		if (bar_2_count == 0) {
 			//TODO: proper addr handling
-			*(uint32_t*) val = 0xfef00000;
+			*(uint32_t*) val = 0xfed00000;
 			bar_2_count ++;
 		}
 		else {
