@@ -403,6 +403,11 @@ static void _sigsegv_protector(int s, siginfo_t *sig_info, void *vcontext)
             break;
     }
 
+    if (watched_page && !is_read) {
+        // skip the instruction for writes
+        context->uc_mcontext.gregs[REG_RIP] += len;
+        goto release;
+    }
 
     if (watched_page) {
         DPRINTF("%s: raised because of invalid r/w acces to address (was in watchlist) ...\n", __func__);
