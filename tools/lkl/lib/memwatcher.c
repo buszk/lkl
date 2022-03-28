@@ -396,17 +396,17 @@ static void _sigsegv_protector(int s, siginfo_t *sig_info, void *vcontext)
             break;
     }
 
+    if (watched_page && !is_read) {
+        // skip current write instruction
+        context->uc_mcontext.gregs[REG_RIP] += len;
+        goto release;
+    }
+
     struct _watch_region *watched_region;
     list_for_each(watched_region, _region_watchlist) {
         if (sig_info->si_addr >= watched_region->addr &&
             sig_info->si_addr < watched_region->addr + watched_region->size)
             break;
-    }
-
-    if (watched_page && !is_read) {
-        // skip the instruction for writes
-        context->uc_mcontext.gregs[REG_RIP] += len;
-        goto release;
     }
 
     if (watched_page) {
