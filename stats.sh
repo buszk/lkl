@@ -1,16 +1,16 @@
 #!/bin/bash
 targets=(
-    'ath9k',
-    # 'ath10k_pci',
-    # 'rtwpci',
-    '8139cp',
-    'atlantic',
-    # 'stmmac_pci',
-    # 'snic',
+    'ath9k'
+    'ath10k_pci'
+    'rtwpci'
+    '8139cp'
+    'atlantic'
+    'stmmac_pci'
+    'snic'
 )
 harnesses=(
-    'afl-harness',
-    'afl-forkserver-harness',
+    'afl-harness'
+    'afl-forkserver-harness'
 )
 
 function fuzz {
@@ -28,9 +28,8 @@ function fuzz {
     grep execs_per_sec $output/default/fuzzer_stats
 }
 
-cd ../AFLplusplus/
-
 cpu=0
+cd ../AFLplusplus/
 for t in ${targets[@]}; do
     for h in ${harnesses[@]}; do
         fuzz $h $t $cpu &
