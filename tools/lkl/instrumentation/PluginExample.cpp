@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <fstream>
+#include <unordered_set>
 
 using namespace std;
 using namespace clang;
@@ -347,19 +348,17 @@ public:
         return true;
     }
 
-/*
-    virtual bool VisitReturnStmt(ReturnStmt *ret) {
-        rewriter.ReplaceText(ret->getRetValue()->getLocStart(), 6, "val");
-        errs() << "** Rewrote ReturnStmt\n";
-        return true;
-    }
-
     virtual bool VisitCallExpr(CallExpr *call) {
-        rewriter.ReplaceText(call->getLocStart(), 7, "add5");
-        errs() << "** Rewrote function call\n";
+        static unordered_set<string> sleep_funcs = \
+        {"msleep", "ssleep", "udelay", "mdelay", "ndelay", "usleep_range", "schedule_timeout_uninterruptible"};
+        if (call->getDirectCallee()) {
+            string fname = call->getDirectCallee()->getNameInfo().getName().getAsString();
+            if (sleep_funcs.count(fname) > 0) {
+                rewriter.InsertText(call->getBeginLoc(), ";// ");
+            }
+        }
         return true;
     }
-*/
 };
 
 
@@ -379,13 +378,6 @@ public:
         /* we can use ASTContext to get the TranslationUnitDecl, which is
              a single Decl that collectively represents the entire source file */
         visitor->TraverseDecl(Context.getTranslationUnitDecl());
-
-        const RewriteBuffer *RewriteBuf =
-            rewriter.getRewriteBufferFor(rewriter.getSourceMgr().getMainFileID());
-        llvm::outs() << "Rewrited content:\n";
-        if (RewriteBuf)
-            llvm::outs() << std::string(RewriteBuf->begin(), RewriteBuf->end());
-        // rewriter.
     }
 
 /*
