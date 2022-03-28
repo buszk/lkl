@@ -5,6 +5,7 @@
 
 extern jmp_buf jmp_env;
 extern int jmp_env_set;
+int fuzz_mode = MODE_DEFAULT;
 
 void fuzz_driver(void) {
     int i, ret, idx;
@@ -30,13 +31,16 @@ void fuzz_driver(void) {
             if (idx > 0) {
                 ret = lkl_if_up(idx);
                 fprintf(stderr, "%s: lkl_if_up: %d\n", ifnames[i], ret);
-                ret = lkl_if_down(idx);
-                fprintf(stderr, "%s: lkl_if_down: %d\n", ifnames[i], ret);
+                if (fuzz_mode != MODE_FORKSERVER) {
+                    ret = lkl_if_down(idx);
+                    fprintf(stderr, "%s: lkl_if_down: %d\n", ifnames[i], ret);
+                }
                 break;
             }
         }
 end_remove:
-        lkl_pci_driver_remove();
+        if (fuzz_mode != MODE_FORKSERVER)
+            lkl_pci_driver_remove();
 end:
         fprintf(stderr, "normal ends\n");
     }
@@ -48,4 +52,9 @@ end:
         fprintf(stderr, "jmp ends\n");
     }
 
+}
+
+
+void set_fuzz_mode(int mode) {
+    fuzz_mode = mode;
 }

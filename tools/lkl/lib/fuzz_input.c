@@ -13,7 +13,7 @@ size_t size = 0;
 size_t used = 0;
 int overflow = 0;
 
-static int fuzz_mode = MODE_DEFAULT;
+extern int fuzz_mode;
 
 static int coverage = 0;
 int __afl_selective_coverage = 1;
@@ -97,6 +97,3 @@ void lkl_set_fuzz_input(void* inp, size_t s) {
     lkl_set_input_end(0);
 }
 
-void set_fuzz_mode(int mode) {
-    fuzz_mode = mode;
-}

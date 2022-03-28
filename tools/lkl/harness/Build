@@ -1,3 +1,4 @@
 libfuzzer-harness-y += libfuzzer-harness.o
 afl-harness-y += afl-harness.o pmparser.o targets.o
 afl-forkserver-harness-y += afl-forkserver-harness.o pmparser.o targets.o
+afl-delayed-forkserver-harness-y += afl-delayed-forkserver-harness.o pmparser.o targets.o
