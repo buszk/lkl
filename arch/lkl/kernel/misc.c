@@ -16,8 +16,12 @@ void dump_stack(void)
 	while (((long)stack & (THREAD_SIZE - 1)) != 0) {
 		addr = *stack;
 		if (__kernel_text_address(addr)) {
+#ifdef CONFIG_KASAN
 			pr_info("%p:  [%08lx] %pS", stack, addr - lkl_kasan_global_start,
 				(void *)addr);
+#else
+			pr_info("%p:  [%08lx] %pS", stack, addr,(void *)addr);
+#endif
 			pr_cont("\n");
 		}
 		stack++;
