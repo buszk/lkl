@@ -349,8 +349,9 @@ public:
     }
 
     virtual bool VisitCallExpr(CallExpr *call) {
+        // ignore "udelay", "mdelay", "ndelay" as they are tracked differently
         static unordered_set<string> sleep_funcs = \
-        {"msleep", "ssleep", "udelay", "mdelay", "ndelay", "usleep_range", "schedule_timeout_uninterruptible"};
+        {"msleep", "ssleep", "usleep_range", "schedule_timeout_uninterruptible"};
         if (call->getDirectCallee()) {
             string fname = call->getDirectCallee()->getNameInfo().getName().getAsString();
             if (sleep_funcs.count(fname) > 0) {
