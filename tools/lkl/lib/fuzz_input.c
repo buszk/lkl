@@ -58,6 +58,7 @@ static inline void input_end(void) {
         exit(1);
         break;
     default:
+        afl_coverage_off();
         break;
     }
 }
