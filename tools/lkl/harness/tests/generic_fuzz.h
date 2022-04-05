@@ -52,9 +52,11 @@ int func(int argc, char**argv) {
             kasan_meta.global_size
             );
 
-    __AFL_INIT();
-    get_afl_input(argv[1]);
     lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
+    while (__AFL_LOOP(1000)) {
+        get_afl_input(argv[1]);
+        fuzz_driver();
+    }
     // lkl_sys_halt();
 
 	return 0;
