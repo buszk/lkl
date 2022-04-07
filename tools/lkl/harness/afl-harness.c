@@ -71,11 +71,11 @@ int main(int argc, char**argv) {
     lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
     // static int counter = 0;
     // while (counter ++ < 1000) {
-    while (__AFL_LOOP(1000)) {
-        get_afl_input(argv[2]);
-        fuzz_driver();
-        fprintf(stderr, "afl_loop iter ends\n");
-    }
+    // while (__AFL_LOOP(1000)) {
+    //     get_afl_input(argv[2]);
+    //     fuzz_driver();
+    //     fprintf(stderr, "afl_loop iter ends\n");
+    // }
     // lkl_sys_halt();
 
 	return 0;

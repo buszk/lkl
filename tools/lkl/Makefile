@@ -66,7 +66,7 @@ export CFLAGS += -I$(OUTPUT)/include -Iinclude -Wall -g -O2 -Wextra \
 
 TARGETS := $(progs-y:%=$(OUTPUT)%$(EXESUF))
 TARGETS += $(libs-y:%=$(OUTPUT)%$(SOSUF))
-all: $(TARGETS) tests
+all: $(TARGETS)
 
 tests: $(TARGETS)
 	harness/tests/tester.sh
@@ -90,7 +90,7 @@ instrument:
 # rule to build lkl.o
 $(OUTPUT)lib/lkl.o: bin/stat configs instrument
 	$(Q)$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT) $(KCONFIG)
-	sleep 1
+	sleep 0.1
 	$(MAKE) -C ../.. ARCH=lkl $(CLANG_ARGS) $(KOPT)
 # this workaround is for arm32 linker (ld.gold)
 	$(Q)export PATH=$(srctree)/tools/lkl/bin/:${PATH} ;\
