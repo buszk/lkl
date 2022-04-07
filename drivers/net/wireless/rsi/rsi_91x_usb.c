@@ -761,6 +761,7 @@ fail:
 static int rsi_probe(struct usb_interface *pfunction,
 		     const struct usb_device_id *id)
 {
+	printk(KERN_INFO "rsi_probe: start\n");
 	struct rsi_hw *adapter;
 	struct rsi_91x_usbdev *dev;
 	u16 fw_status;
@@ -826,6 +827,7 @@ static int rsi_probe(struct usb_interface *pfunction,
 			goto err1;
 	}
 
+	printk(KERN_INFO "rsi_probe: succeed\n");
 	return 0;
 err1:
 	rsi_deinit_usb_interface(adapter);

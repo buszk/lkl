@@ -1275,6 +1275,7 @@ static void __exit usb_exit(void)
 	idr_destroy(&usb_bus_idr);
 }
 
-subsys_initcall(usb_init);
+postcore_initcall(usb_init);
+// subsys_initcall(usb_init);
 module_exit(usb_exit);
 MODULE_LICENSE("GPL");

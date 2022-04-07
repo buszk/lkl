@@ -46,6 +46,40 @@ struct lkl_dev_pci_ops {
 };
 
 /**
+ * lkl_dev_pci_ops - PCI host operations
+ *
+ * These operations would be a wrapper of userspace PCI drvier and
+ * must be provided by a host library or by the application.
+ *
+ * @add - add a new PCI device; returns a handler or NULL if fails
+ * @remove - release resources
+ * @init_irq - allocate resources for interrupts
+ * @read - read the PCI Configuration Space
+ * @write - write the PCI Configuration Space
+ * @resource_alloc - map BARx and return the mapped address. x is resource_index
+ *
+ * @map_page - return the DMA address of pages; vaddr might not be page-aligned
+ * @unmap_page - cleanup DMA region if needed
+ *
+ */
+struct lkl_dev_usb_ops {
+	struct lkl_usb_dev *(*add)(const char *name, void *kernel_ram,
+				   unsigned long ram_size);
+	void (*remove)(struct lkl_usb_dev *dev);
+	// int (*irq_init)(struct lkl_usb_dev *dev, int irq);
+	// int (*read)(struct lkl_usb_dev *dev, int where, int size, void *val);
+	// int (*write)(struct lkl_usb_dev *dev, int where, int size, void *val);
+	// void *(*resource_alloc)(struct lkl_usb_dev *dev,
+	// 			unsigned long resource_size,
+	// 			int resource_index);
+	// unsigned long long (*map_page)(struct lkl_usb_dev *dev, void *vaddr,
+	// 			       unsigned long size, int consistent);
+	// void (*unmap_page)(struct lkl_usb_dev *dev,
+	// 		   unsigned long long dma_handle,
+	// 		   unsigned long size, int consistent);
+};
+
+/**
  * lkl_host_operations - host operations used by the Linux kernel
  *
  * These operations must be provided by a host library or by the application
@@ -172,6 +206,7 @@ struct lkl_host_operations {
 
 	void* (*memcpy)(void *dest, const void *src, unsigned long count);
 	struct lkl_dev_pci_ops *pci_ops;
+	struct lkl_dev_usb_ops *usb_ops;
 };
 
 /**
