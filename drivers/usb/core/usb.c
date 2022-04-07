@@ -1250,6 +1250,7 @@ bus_register_failed:
 	usb_acpi_unregister();
 	usb_debugfs_cleanup();
 out:
+	printk(KERN_INFO "usb_init done\n");
 	return retval;
 }
 

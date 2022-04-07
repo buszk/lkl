@@ -51,6 +51,7 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 	unsigned long expire;
 	int retval;
 
+	//printk(KERN_INFO "%s urb: %lx pipe: %x\n", __func__,(uint64_t)urb, urb->pipe);
 	init_completion(&ctx.done);
 	urb->context = &ctx;
 	urb->actual_length = 0;
@@ -59,11 +60,11 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 		goto out;
 
 	expire = timeout ? msecs_to_jiffies(timeout) : MAX_SCHEDULE_TIMEOUT;
+	// printk(KERN_INFO "waiting for %lx\n", (uint64_t)&ctx.done);
 	if (!wait_for_completion_timeout(&ctx.done, expire)) {
 		usb_kill_urb(urb);
 		retval = (ctx.status == -ENOENT ? -ETIMEDOUT : ctx.status);
-
-		dev_dbg(&urb->dev->dev,
+		dev_info(&urb->dev->dev,
 			"%s timed out on ep%d%s len=%u/%u\n",
 			current->comm,
 			usb_endpoint_num(&urb->ep->desc),
@@ -72,6 +73,7 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 			urb->transfer_buffer_length);
 	} else
 		retval = ctx.status;
+	// printk("wait_for_completion_timeout finished: %d\n", retval);
 out:
 	if (actual_length)
 		*actual_length = urb->actual_length;
@@ -99,6 +101,7 @@ static int usb_internal_control_msg(struct usb_device *usb_dev,
 			     len, usb_api_blocking_completion, NULL);
 
 	retv = usb_start_wait_urb(urb, timeout, &length);
+	//printk(KERN_INFO "%s: %d\n", __func__, retv);
 	if (retv < 0)
 		return retv;
 	else

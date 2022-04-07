@@ -1753,6 +1753,7 @@ static bool hub_descriptor_is_sane(struct usb_host_interface *desc)
 
 static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
 {
+	printk(KERN_INFO "Running hub_probe\n");
 	struct usb_host_interface *desc;
 	struct usb_device *hdev;
 	struct usb_hub *hub;
@@ -1861,8 +1862,10 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
 	if (id->driver_info & HUB_QUIRK_CHECK_PORT_AUTOSUSPEND)
 		hub->quirk_check_port_auto_suspend = 1;
 
-	if (hub_configure(hub, &desc->endpoint[0].desc) >= 0)
+	if (hub_configure(hub, &desc->endpoint[0].desc) >= 0) {
+		printk(KERN_INFO "hub_probe suceeded\n");
 		return 0;
+	}
 
 	hub_disconnect(intf);
 	return -ENODEV;
@@ -2415,6 +2418,7 @@ static void set_usb_port_removable(struct usb_device *udev)
 	if (!hdev)
 		return;
 
+	printk(KERN_INFO "%s port: %x\n", __func__, port);
 	hub = usb_hub_to_struct_hub(udev->parent);
 
 	/*
@@ -2883,10 +2887,11 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 			status = hub_port_wait_reset(hub, port1, udev, delay,
 								warm);
 			if (status && status != -ENOTCONN && status != -ENODEV)
-				dev_dbg(hub->intfdev,
+				dev_err(hub->intfdev,
 						"port_wait_reset: err = %d\n",
 						status);
 		}
+		printk(KERN_INFO "%s: %d\n", __func__, status);
 
 		/* Check for disconnect or reset */
 		if (status == 0 || status == -ENOTCONN || status == -ENODEV) {
@@ -2922,13 +2927,13 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 			 * hot or warm reset failed.  Try another warm reset.
 			 */
 			if (!warm) {
-				dev_dbg(&port_dev->dev,
+				dev_err(&port_dev->dev,
 						"hot reset failed, warm reset\n");
 				warm = true;
 			}
 		}
 
-		dev_dbg(&port_dev->dev,
+		dev_err(&port_dev->dev,
 				"not enabled, trying %sreset again...\n",
 				warm ? "warm " : "");
 		delay = HUB_LONG_RESET_TIME;
@@ -4507,7 +4512,7 @@ static int hub_enable_device(struct usb_device *udev)
  * through any global pointers, it's not necessary to lock the device,
  * but it is still necessary to lock the port.
  */
-static int
+int
 hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 		int retry_counter)
 {

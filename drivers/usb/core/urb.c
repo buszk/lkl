@@ -364,8 +364,10 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
 	}
 
 	dev = urb->dev;
-	if ((!dev) || (dev->state < USB_STATE_UNAUTHENTICATED))
+	if ((!dev) || (dev->state < USB_STATE_UNAUTHENTICATED)) {
+		printk(KERN_INFO "state check didn't pass\n");
 		return -ENODEV;
+	}
 
 	/* For now, get the endpoint from the pipe.  Eventually drivers
 	 * will be required to set urb->ep directly and we will eliminate
@@ -408,7 +410,7 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
 
 	max = usb_endpoint_maxp(&ep->desc);
 	if (max <= 0) {
-		dev_dbg(&dev->dev,
+		dev_err(&dev->dev,
 			"bogus endpoint ep%d%s in %s (bad maxpacket %d)\n",
 			usb_endpoint_num(&ep->desc), is_out ? "out" : "in",
 			__func__, max);
@@ -464,8 +466,10 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
 	}
 
 	/* the I/O buffer must be mapped/unmapped, except when length=0 */
-	if (urb->transfer_buffer_length > INT_MAX)
+	if (urb->transfer_buffer_length > INT_MAX) {
+		printk(KERN_INFO "urb->transfer_buffer_length > INT_MAX\n");
 		return -EMSGSIZE;
+	}
 
 	/*
 	 * stuff that drivers shouldn't do, but which shouldn't
