@@ -4,6 +4,8 @@
 #include <string.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <assert.h>
+#include <sys/random.h>
 #include "memwatcher.h"
 #include "fuzz_input.h"
 
@@ -79,9 +81,15 @@ GET_FUNC(uint16_t, word)
 GET_FUNC(uint32_t, dword)
 GET_FUNC(uint64_t, qword)
 
-void get_size(size_t s, void* b) {
+uint8_t get_control(void) {
+    return get_byte();
+}
+
+void get_size(void* b, size_t s) {
+    fprintf(stderr, "get_size\n");
     if (used + s > size) {
         afl_coverage_off();
+        assert(getrandom(b, s, 0));
         return;
     }
     memcpy(b, buffer + used, s);

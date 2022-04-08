@@ -355,6 +355,7 @@ static void page_free(void *addr, unsigned long size)
 #ifdef LKL_HOST_CONFIG_VFIO_PCI
 extern struct lkl_dev_pci_ops vfio_pci_ops;
 #endif
+extern struct lkl_dev_usb_ops fuzz_usb_ops;
 
 struct lkl_host_operations lkl_host_ops = {
 	.panic = panic,
@@ -395,6 +396,7 @@ struct lkl_host_operations lkl_host_ops = {
 #ifdef LKL_HOST_CONFIG_VFIO_PCI
 	.pci_ops = &vfio_pci_ops,
 #endif
+	.usb_ops = &fuzz_usb_ops,
 };
 
 static int fd_get_capacity(struct lkl_disk disk, unsigned long long *res)

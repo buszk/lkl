@@ -34,68 +34,6 @@ static const __u8 root_hub_hub_des[] =
 	0xff            /*  __u8  PortPwrCtrlMask; *** 7 ports max */
 };
 
-static const __u8 device_desc[] =
-{
-	0x12,        // bLength
-	0x01,        // bDescriptorType (Device)
-	0x00, 0x02,  // bcdUSB 2.00
-	0x02,        // bDeviceClass (Communications and CDC Control)
-	0x00,        // bDeviceSubClass 
-	0x00,        // bDeviceProtocol 
-	0x40,        // bMaxPacketSize0 64
-	0x18, 0x16,  // idVendor 0x1618
-	0x13, 0x91,  // idProduct 0x9113
-	0x00, 0x00,  // bcdDevice 0.00
-	0x01,        // iManufacturer (String Index)
-	0x02,        // iProduct (String Index)
-	0x0A,        // iSerialNumber (String Index)
-	0x01,        // bNumConfigurations 1
-};
-
-static const __u8 config_desc[] =
-{
-	0x09,        // bLength
-	0x02,        // bDescriptorType (USB_DT_CONFIG)
-	0x27, 0x00,  // wTotalLength 39
-	0x01,        // bNumInterfaces 1
-	0x02,        // bConfigurationValue
-	0x09,        // iConfiguration (String Index)
-	0xC0,        // bmAttributes Self Powered
-	// 0x32,        // bMaxPower 100mA
-	0x00,        // bMaxPower 0mA
-
-	0x09,        // bLength
-	0x04,        // bDescriptorType (Interface)
-	0x00,        // bInterfaceNumber 0
-	0x00,        // bAlternateSetting
-	0x03,        // bNumEndpoints 3
-	0x02,        // bInterfaceClass
-	0x02,        // bInterfaceSubClass
-	0xFF,        // bInterfaceProtocol
-	0x06,        // iInterface (String Index)
-
-	0x07,        // bLength
-	0x05,        // bDescriptorType (Endpoint)
-	0x81,        // bEndpointAddress (IN/D2H)
-	0x02,        // bmAttributes (Bulk)
-	0x40, 0x00,  // wMaxPacketSize 64
-	0x00,        // bInterval 0 (unit depends on device speed)
-
-	0x07,        // bLength
-	0x05,        // bDescriptorType (Endpoint)
-	0x01,        // bEndpointAddress (OUT/H2D)
-	0x02,        // bmAttributes (Bulk)
-	0x40, 0x00,  // wMaxPacketSize 64
-	0x00,        // bInterval 0 (unit depends on device speed)
-
-	0x07,        // bLength
-	0x05,        // bDescriptorType (Endpoint)
-	0x82,        // bEndpointAddress (IN/D2H)
-	0x02,        // bmAttributes (Bulk)
-	0x40, 0x00,  // wMaxPacketSize 64
-	0x00,        // bInterval 0 (unit depends on device speed)
-};
-
 
 
 static int lkl_hcd_start(struct usb_hcd *hcd) {
@@ -133,8 +71,8 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 				break;
 			case USB_DT_CONFIG:
 				printk(KERN_INFO "USB_DT_CONFIG\n");
-				memcpy(urb->transfer_buffer, config_desc, req->wLength);
-				urb->actual_length = req->wLength;
+				urb->actual_length = 
+					lkl_ops->usb_ops->get_config_desc(urb->transfer_buffer, req->wLength);
 				break;
 			case USB_DT_STRING:
 				printk(KERN_INFO "USB_DT_STRING: len: %x\n", req->wLength);
@@ -154,7 +92,7 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 			}
 			break;
 		default:
-			printk(KERN_INFO "Unknown request\n");
+			printk(KERN_INFO "Unknown control request\n");
 			memset(urb->transfer_buffer, 'A', urb->transfer_buffer_length);
 			urb->actual_length = urb->transfer_buffer_length;
 			break;
@@ -164,9 +102,10 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 	}
 	else if (usb_pipebulk(urb->pipe) && usb_pipein(urb->pipe)) {
 		// lkl_bug("bulk pipe\n");
-		memset(urb->transfer_buffer, 'A', urb->transfer_buffer_length);
-		urb->actual_length = urb->transfer_buffer_length;
-		// usb_hcd_giveback_urb(hcd, urb, 0);
+		urb->actual_length = 
+			lkl_ops->usb_ops->get_data(urb->transfer_buffer, urb->transfer_buffer_length);
+		if (lkl_ops->usb_ops->get_control_byte() & 0x1)
+			usb_hcd_giveback_urb(hcd, urb, 0);
 	}
 	else {
 		lkl_bug("Unimplementated pipe\n");
@@ -268,7 +207,8 @@ static int lkl_usb_probe(struct platform_device *pdev)
 	udev = usb_alloc_dev(hcd->self.root_hub, &hcd->self, 7);
 	// usb_set_configuration(udev, 0);
 	// udev->descriptor.bNumConfigurations = 1;
-	memcpy(&udev->descriptor, device_desc, sizeof(udev->descriptor));
+	// memcpy(&udev->descriptor, device_desc, sizeof(udev->descriptor));
+	lkl_ops->usb_ops->get_device_desc(&udev->descriptor, sizeof(udev->descriptor));
 	udev->ep0.desc.wMaxPacketSize = 0x40;
 	udev->state = USB_STATE_ADDRESS;
 	usb_new_device(udev);
