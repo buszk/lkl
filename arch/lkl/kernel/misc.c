@@ -6,11 +6,13 @@
 #include <asm/host_ops.h>
 
 #ifdef CONFIG_PRINTK
+char stack_addrs_str[512*17];
 void dump_stack(void)
 {
 	unsigned long dummy;
 	unsigned long *stack = &dummy;
 	unsigned long addr;
+	char *ptr = stack_addrs_str;
 
 	pr_info("Call Trace:\n");
 	while (((long)stack & (THREAD_SIZE - 1)) != 0) {
@@ -19,6 +21,7 @@ void dump_stack(void)
 #ifdef CONFIG_KASAN
 			pr_info("%p:  [%08lx] %pS", stack, addr - lkl_kasan_global_start,
 				(void *)addr);
+			ptr += snprintf(ptr, 19, "0x%lx ", addr - lkl_kasan_global_start);
 #else
 			pr_info("%p:  [%08lx] %pS", stack, addr,(void *)addr);
 #endif
@@ -26,6 +29,8 @@ void dump_stack(void)
 		}
 		stack++;
 	}
+	*ptr = '\x00';
+	pr_info("addr2line -e HARNESS %s\n", stack_addrs_str);
 	pr_info("\n");
 }
 #endif
