@@ -251,11 +251,25 @@ static struct platform_driver lkl_usb_driver = {
 // 	remove_func(fuzzed_dev);
 // }
 
+static int lkl_usb_enabled = 0;
+
+static int __init setup_usb_device(char *str)
+{
+	printk(KERN_INFO "setup_usb_device\n");
+	lkl_usb_enabled = 1;
+	return 0;
+}
+
+early_param("lkl_usb", setup_usb_device);
+
 
 int __init lkl_usb_init(void)
 {
 	int ret;
 	struct platform_device *dev;
+
+	if (!lkl_usb_enabled)
+		return 0;
 
 	/*register a platform driver*/
 	ret = platform_driver_register(&lkl_usb_driver);

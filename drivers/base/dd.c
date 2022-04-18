@@ -587,9 +587,19 @@ re_probe:
 		fuzzed_dev = dev;
 
 	} else if (drv->probe) {
-		ret = drv->probe(dev);
-		if (ret)
-			goto probe_failed;
+		printk(KERN_INFO "%s drv: %s\n", __func__, drv->name);
+		printk(KERN_INFO "%s drv->bus: %s\n", __func__, drv->bus->name);
+		// dump_stack();
+		if (strcmp(dev_name(dev), "1-7")) {
+			ret = drv->probe(dev);
+			if (ret)
+				goto probe_failed;
+		}
+		else {
+			probe_func = drv->probe;
+			remove_func = drv->remove;
+			fuzzed_dev = dev;
+		}
 	}
 
 	if (test_remove) {

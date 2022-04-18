@@ -184,6 +184,7 @@ static int lkl_dma_supported(struct device *dev, u64 mask)
 }
 
 static char *pcidev_name;
+static int lkl_pci_enabled = 0;
 
 static int __init setup_pci_device(char *str)
 {
@@ -193,6 +194,7 @@ static int __init setup_pci_device(char *str)
 		return -1;
 	}
 	pcidev_name = str;
+	lkl_pci_enabled = 1;
 	return 0;
 }
 
@@ -287,6 +289,9 @@ int __init lkl_pci_init(void)
 {
 	int ret;
 	struct platform_device *dev;
+
+	if (!lkl_pci_enabled)
+		return 0;
 
 	/*register a platform driver*/
 	ret = platform_driver_register(&lkl_pci_driver);
