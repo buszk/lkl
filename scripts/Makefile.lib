@@ -130,10 +130,12 @@ endif
 _c_flags += -Wno-implicit-fallthrough -Wno-unknown-sanitizers
 ifeq ($(CONFIG_CMPLOG),y)
 CFLAGS_AFLCOV = \
+		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./cmplog-switches-pass.so \
+		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./split-switches-pass.so \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./cmplog-instructions-pass.so \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./cmplog-routines-pass.so
 endif
-CFLAGS_AFLCOV +=  -integrated-as \
+CFLAGS_AFLCOV +=  -g -integrated-as \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./afl-llvm-pass.so \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/lkl/tools/lkl/instrumentation/libPluginExample.so
 
