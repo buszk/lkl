@@ -133,6 +133,12 @@ static struct sk_buff *rsi_prepare_skb(struct rsi_common *common,
 		pkt_len = RSI_RCV_BUFFER_LEN * 4;
 	}
 
+	if (pkt_len < extended_desc) {
+		pr_crit("Malformed packet: packet length (%x) less than extended_desc (%x)",
+				pkt_len, extended_desc);
+		return NULL;
+	}
+
 	pkt_len -= extended_desc;
 	skb = dev_alloc_skb(pkt_len + FRAME_DESC_SZ);
 	if (skb == NULL)
@@ -164,6 +170,8 @@ int rsi_read_pkt(struct rsi_common *common, u8 *rx_pkt, s32 rcv_pkt_len)
 
 	index = 0;
 	do {
+		if (index >= rcv_pkt_len)
+			goto fail;
 		frame_desc = &rx_pkt[index];
 		actual_length = *(u16 *)&frame_desc[0];
 		offset = *(u16 *)&frame_desc[2];
