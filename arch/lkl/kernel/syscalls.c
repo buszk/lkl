@@ -97,6 +97,8 @@ static void del_host_task(void *arg)
 
 static struct lkl_tls_key *task_key;
 
+
+int new_host = 1;
 long lkl_syscall(long no, long *params)
 {
 	struct task_struct *task = host0;
@@ -108,14 +110,16 @@ long lkl_syscall(long no, long *params)
 
 	if (lkl_ops->tls_get) {
 		task = lkl_ops->tls_get(task_key);
-		if (!task) {
+		if (!task || new_host) {
 			ret = new_host_task(&task);
 			if (ret)
 				goto out;
 			lkl_ops->tls_set(task_key, task);
+			new_host = 0;
 		}
 	}
 
+	printk(KERN_INFO "switching to host task: %llx\n", (uint64_t)task);
 	switch_to_host_task(task);
 
 	ret = run_syscall(no, params);

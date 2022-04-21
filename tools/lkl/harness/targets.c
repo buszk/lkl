@@ -1,16 +1,13 @@
 #include <stdlib.h>
 #include <string.h>
+#include "targets.h"
 
 
-extern short pci_vender;
-extern short pci_device;
-extern short pci_revision;
-
-
-int set_target(const char*);
+int bus_type = BUS_DEFAULT;
 int set_target(const char* target) {
     // atlantic
     if (!strcmp(target, "atlantic")) {
+        bus_type = BUS_PCI;
         pci_vender = 0x1d6a;
         pci_device = 0x1;
         pci_revision = 0x1;
@@ -19,6 +16,7 @@ int set_target(const char* target) {
 
     // snic
     if (!strcmp(target, "snic")) {
+        bus_type = BUS_PCI;
         pci_vender = 0x1137;
         pci_device = 0x0046;
         pci_revision = 0x1;
@@ -27,6 +25,7 @@ int set_target(const char* target) {
 
     // 8139cp
     if (!strcmp(target, "8139cp")) {
+        bus_type = BUS_PCI;
         pci_vender = 0x10ec;
         pci_device = 0x8139;
         pci_revision = 0x20;
@@ -35,6 +34,7 @@ int set_target(const char* target) {
 
     // ath9k
     if (!strcmp(target, "ath9k")) {
+        bus_type = BUS_PCI;
         pci_vender = 0x168c;
         pci_device = 0x0023;
         pci_revision = 0x0;
@@ -43,6 +43,7 @@ int set_target(const char* target) {
 
     // ath10k_pci
     if (!strcmp(target, "ath10k_pci")) {
+        bus_type = BUS_PCI;
         pci_vender = 0x168c;
         pci_device = 0x003e;
         pci_revision = 0x0;
@@ -51,6 +52,7 @@ int set_target(const char* target) {
 
     // rtwpci
     if (!strcmp(target, "rtwpci")) {
+        bus_type = BUS_PCI;
         pci_vender = 0x10ec;
         pci_device = 0xB822;
         pci_revision = 0x0;
@@ -59,9 +61,16 @@ int set_target(const char* target) {
 
     // stmmac_pci
     if (!strcmp(target, "stmmac_pci")) {
+        bus_type = BUS_PCI;
         pci_vender = 0x8086;
         pci_device = 0x0937;
         pci_revision = 0x1;
+        return 0;
+    }
+
+    // usb
+    if (!strcmp(target, "usb")) {
+        bus_type = BUS_USB;
         return 0;
     }
 

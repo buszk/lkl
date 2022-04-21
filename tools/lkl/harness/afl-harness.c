@@ -15,13 +15,12 @@
 
 #include "afl.h"
 #include "pmparser.h"
+#include "targets.h"
 
 
 
 void *input_buffer =NULL;
 ssize_t input_size =0;
-
-int set_target(const char *);
 
 void get_afl_input(char* fname) {
     int fd;
@@ -61,21 +60,31 @@ int main(int argc, char**argv) {
     
     __AFL_INIT();
 	lkl_kasan_init(&lkl_host_ops,
-			128 * 1024 * 1024,
+			512 * 1024 * 1024,
             kasan_meta.stack_base,
             kasan_meta.stack_size,
             kasan_meta.global_base,
             kasan_meta.global_size
             );
-
-    lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
+    switch (bus_type)
+    {
+    case BUS_PCI:
+        lkl_start_kernel(&lkl_host_ops, "mem=512M loglevel=8 lkl_pci=fuzz");
+        break;
+    case BUS_USB:
+        lkl_start_kernel(&lkl_host_ops, "mem=512M loglevel=8 lkl_usb=fuzz");
+        break;
+    default:
+        fprintf(stderr, "Unknown BUS_TYPE %d\n", bus_type);
+        break;
+    }
     // static int counter = 0;
-    // while (counter ++ < 1000) {
-    // while (__AFL_LOOP(1000)) {
-    //     get_afl_input(argv[2]);
-    //     fuzz_driver();
-    //     fprintf(stderr, "afl_loop iter ends\n");
-    // }
+    // while (counter ++ < 2) {
+    while (__AFL_LOOP(1000)) {
+        get_afl_input(argv[2]);
+        fuzz_driver();
+        fprintf(stderr, "afl_loop iter ends\n");
+    }
     // lkl_sys_halt();
 
 	return 0;

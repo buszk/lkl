@@ -198,6 +198,7 @@ late_initcall(fs_setup);
 #include <linux/sched.h>
 extern int input_end;
 extern int jmp_buf_valid;
+extern int new_host;
 extern struct jmp_buf_data jmp_buf;
 void lkl_set_input_end(int v) {
 	struct jmp_buf_data *buf;
@@ -211,6 +212,7 @@ void lkl_set_input_end(int v) {
 	}
 	else if (v == 0) {
 		while(pop_jmp_buf()) {}
+		new_host = 1;
 	}
 }
 
