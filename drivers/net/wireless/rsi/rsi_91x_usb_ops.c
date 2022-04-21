@@ -43,7 +43,7 @@ void rsi_usb_rx_thread(struct rsi_common *common)
 			skb = skb_dequeue(&dev->rx_q);
 			if (!skb)
 				break;
-			status = rsi_read_pkt(common, skb->data, 0);
+			status = rsi_read_pkt(common, skb->data, skb->len);
 			if (status) {
 				rsi_dbg(ERR_ZONE, "%s: Failed To read data",
 					__func__);
