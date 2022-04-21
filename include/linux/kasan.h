@@ -25,6 +25,7 @@ extern p4d_t kasan_early_shadow_p4d[MAX_PTRS_PER_P4D];
 int kasan_populate_early_shadow(const void *shadow_start,
 				const void *shadow_end);
 
+static s8 dummy_shadow_val = 0;
 static inline void *kasan_mem_to_shadow(const void *addr)
 {
     unsigned long shadow_offset;
@@ -43,8 +44,9 @@ static inline void *kasan_mem_to_shadow(const void *addr)
         shadow_offset = KASAN_GLOBAL_SHADOW_OFFSET;
     }
     else {
-        printk(KERN_INFO "failed at mem_to_shadow %llx\n", (uint64_t)addr);
+        // printk(KERN_INFO "failed at mem_to_shadow %llx\n", (uint64_t)addr);
         // panic("failed at mem_to_shadow\n");
+		return &dummy_shadow_val;
     }
 #endif
 	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
