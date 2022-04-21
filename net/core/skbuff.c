@@ -105,6 +105,7 @@ static void skb_panic(struct sk_buff *skb, unsigned int sz, void *addr,
 		 msg, addr, skb->len, sz, skb->head, skb->data,
 		 (unsigned long)skb->tail, (unsigned long)skb->end,
 		 skb->dev ? skb->dev->name : "<NULL>");
+	dump_stack();
 	BUG();
 }
 
