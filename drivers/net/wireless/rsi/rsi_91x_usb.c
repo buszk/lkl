@@ -330,7 +330,7 @@ static int rsi_rx_urb_submit(struct rsi_hw *adapter, u8 ep_num)
 			  usb_rcvbulkpipe(dev->usbdev,
 			  dev->bulkin_endpoint_addr[ep_num - 1]),
 			  urb->transfer_buffer,
-			  skb->len,
+			  (skb->len - dword_align_bytes),
 			  rsi_rx_done_handler,
 			  rx_cb);
 
