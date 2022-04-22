@@ -9,4 +9,6 @@ struct jmp_buf_data* push_jmp_buf(void);
 struct jmp_buf_data* pop_jmp_buf(void);
 struct jmp_buf_data* try_pop_jmp_buf(void);
 
+#define __wait_for_completion_timeout(a, b) wait_for_completion_timeout(a, 0)
+
 #endif

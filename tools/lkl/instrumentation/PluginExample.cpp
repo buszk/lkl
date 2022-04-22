@@ -357,6 +357,9 @@ public:
             if (sleep_funcs.count(fname) > 0) {
                 rewriter.InsertText(call->getBeginLoc(), ";// ");
             }
+            else if (fname == "wait_for_completion_timeout") {
+                rewriter.InsertText(call->getBeginLoc(), "__");
+            }
         }
         return true;
     }
