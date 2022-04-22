@@ -39,6 +39,9 @@ int jmp_buf_valid = 0;
 struct jmp_buf_data jmp_buf;
 
 struct jmp_buf_data*  push_jmp_buf(void) {
+	if (current->jmp_buf_count >= JMP_BUF_STACK_SIZE) {
+		lkl_bug("jmp_buffer_stack out-of-bounds\n");
+	}
 	printk(KERN_INFO "%s: %d\n", __func__, current->jmp_buf_count);
 	current->jmp_buf_stack[current->jmp_buf_count].__lock_count = current->lock_count;
 	return &current->jmp_buf_stack[current->jmp_buf_count++];

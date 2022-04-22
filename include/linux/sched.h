@@ -635,6 +635,7 @@ struct wake_q_node {
 	struct wake_q_node *next;
 };
 
+#define JMP_BUF_STACK_SIZE 32
 struct task_struct {
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 	/*
@@ -659,7 +660,7 @@ struct task_struct {
 	unsigned int			ptrace;
 
 	/* jmp buffers for quick term */
-	struct jmp_buf_data jmp_buf_stack[32];
+	struct jmp_buf_data jmp_buf_stack[JMP_BUF_STACK_SIZE];
 	int jmp_buf_count;
 	int lock_count;
 
