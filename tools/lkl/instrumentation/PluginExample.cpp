@@ -352,13 +352,15 @@ public:
         // ignore "udelay", "mdelay", "ndelay" as they are tracked differently
         static unordered_set<string> sleep_funcs = \
         {"msleep", "ssleep", "usleep_range", "schedule_timeout_uninterruptible"};
+        static unordered_set<string> wait_funcs = \
+        {"wait_for_completion_timeout", "mod_timer"};
         if (call->getDirectCallee()) {
             string fname = call->getDirectCallee()->getNameInfo().getName().getAsString();
             if (sleep_funcs.count(fname) > 0) {
                 rewriter.InsertText(call->getBeginLoc(), ";// ");
             }
-            else if (fname == "wait_for_completion_timeout") {
-                rewriter.InsertText(call->getBeginLoc(), "__");
+            else if (wait_funcs.count(fname) > 0) {
+                rewriter.InsertText(call->getBeginLoc(), "nowait_");
             }
         }
         return true;
