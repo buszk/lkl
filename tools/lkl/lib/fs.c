@@ -211,7 +211,8 @@ long lkl_mount_blkdev(unsigned int dev, const char *fs_type, int flags,
 		return -LKL_ENOMEM;
 
 	snprintf(dev_str, sizeof(dev_str), "/dev/%08x", dev);
-	snprintf(mnt_str, mnt_str_len, "/mnt/%08x", dev);
+	if (strcmp(mnt_str, "/lib/firmware"))
+		snprintf(mnt_str, mnt_str_len, "/mnt/%08x", dev);
 
 	err = lkl_sys_access("/dev", LKL_S_IRWXO);
 	if (err < 0) {
@@ -229,6 +230,14 @@ long lkl_mount_blkdev(unsigned int dev, const char *fs_type, int flags,
 	if (err < 0) {
 		if (err == -LKL_ENOENT)
 			err = lkl_sys_mkdir("/mnt", 0700);
+		if (err < 0)
+			return err;
+	}
+
+	err = lkl_sys_access("/lib", LKL_S_IRWXO);
+	if (err < 0) {
+		if (err == -LKL_ENOENT)
+			err = lkl_sys_mkdir("/lib", 0700);
 		if (err < 0)
 			return err;
 	}
