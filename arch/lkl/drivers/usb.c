@@ -15,6 +15,9 @@
 #include <asm/cpu.h>
 #include <asm/host_ops.h>
 
+
+static int giveback_counter = 0;
+
 struct api_context {
 	struct completion	done;
 	int			status;
@@ -104,8 +107,15 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 		// lkl_bug("bulk pipe\n");
 		urb->actual_length = 
 			lkl_ops->usb_ops->get_data(urb->transfer_buffer, urb->transfer_buffer_length);
-		if (lkl_ops->usb_ops->get_control_byte() & 0x1)
+		// Giveback indefinitely can cause stack overflow
+		// Set maximum to 16
+		if (giveback_counter < 16 && (lkl_ops->usb_ops->get_control_byte() & 0x1)) {
+			giveback_counter ++;
 			usb_hcd_giveback_urb(hcd, urb, 0);
+		}
+		else {
+			giveback_counter = 0;
+		}
 	}
 	else {
 		lkl_bug("Unimplementated pipe\n");
