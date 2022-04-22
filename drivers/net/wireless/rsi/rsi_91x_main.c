@@ -175,6 +175,8 @@ int rsi_read_pkt(struct rsi_common *common, u8 *rx_pkt, s32 rcv_pkt_len)
 		frame_desc = &rx_pkt[index];
 		actual_length = *(u16 *)&frame_desc[0];
 		offset = *(u16 *)&frame_desc[2];
+		if (actual_length == 0)
+			goto fail;
 		if (index + offset >= rcv_pkt_len -FRAME_DESC_SZ)
 			goto fail;
 
