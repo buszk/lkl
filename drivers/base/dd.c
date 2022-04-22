@@ -585,9 +585,14 @@ re_probe:
 	if (dev->bus->probe) {
 		printk(KERN_INFO "%s bus: %lx\n", __func__, (uint64_t)dev->bus);
 		printk(KERN_INFO "dev->bus->probe\n");
-		probe_func = dev->bus->probe;
-		remove_func = dev->bus->remove;
-		fuzzed_dev = dev;
+		if (strcmp(dev->bus->name, "virtio")) {
+			probe_func = dev->bus->probe;
+			remove_func = dev->bus->remove;
+			fuzzed_dev = dev;
+		}
+		else {
+			dev->bus->probe(dev);
+		}
 
 	} else if (drv->probe) {
 		printk(KERN_INFO "%s drv: %s\n", __func__, drv->name);

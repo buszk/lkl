@@ -22,6 +22,9 @@
 void *input_buffer =NULL;
 ssize_t input_size =0;
 
+static struct lkl_disk disk;
+static int disk_id = -1;
+
 void get_afl_input(char* fname) {
     int fd;
     struct stat buf;
@@ -46,7 +49,17 @@ void get_afl_input(char* fname) {
     lkl_set_fuzz_input(input_buffer, input_size);
 }
 
+void load_firmware_disk(void) {
+    disk.fd = open("/home/buszk/Workspace/git/lkl/firmware.ext4", O_RDWR);
+    assert(disk.fd >= 0);
+    disk.ops = NULL;
+    disk_id = lkl_disk_add(&disk);;
+}
+
 int main(int argc, char**argv) {
+    int ret;
+    char buf[64];
+    char mount_dir[64] = "/lib/firmware";
 	struct lkl_kasan_meta kasan_meta = {0};
 
     assert(argc > 2);
@@ -78,6 +91,9 @@ int main(int argc, char**argv) {
         fprintf(stderr, "Unknown BUS_TYPE %d\n", bus_type);
         break;
     }
+    load_firmware_disk();
+    ret = lkl_mount_dev(disk_id, 0, "ext4", 0, "", mount_dir, sizeof(mount_dir));
+    assert(ret == 0);
     // static int counter = 0;
     // while (counter ++ < 2) {
     while (__AFL_LOOP(1000)) {
@@ -85,6 +101,8 @@ int main(int argc, char**argv) {
         fuzz_driver();
         fprintf(stderr, "afl_loop iter ends\n");
     }
+	lkl_umount_dev(disk_id, 0, 0, 1000);
+    lkl_disk_remove(disk);
     // lkl_sys_halt();
 
 	return 0;
