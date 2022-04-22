@@ -17,8 +17,18 @@
 #include <execinfo.h>
 #include "fuzz_input.h"
 
+#define MAX_EP 8
 
-static const __u8 device_desc[] =
+short usb_vendor = 0;
+short usb_product = 0;
+
+#define DEFAULT_VENDOR_ID 0x1618
+#define DEFAULT_PRODUCT_ID 0x9113
+
+#define VENDOR_ID (usb_vendor) ? usb_vendor : DEFAULT_VENDOR_ID
+#define PRODUCT_ID (usb_product) ? usb_product : DEFAULT_VENDOR_ID
+
+static __u8 device_desc[] =
 {
 	0x12,        // bLength
 	0x01,        // bDescriptorType (Device)
@@ -37,11 +47,12 @@ static const __u8 device_desc[] =
 };
 
 
-static const __u8 config_desc[] =
+static __u8 config_desc[] =
 {
 	0x09,        // bLength
 	0x02,        // bDescriptorType (USB_DT_CONFIG)
-	0x27, 0x00,  // wTotalLength 39
+	// 0x27, 0x00,  // wTotalLength 39
+	0x3c, 0x00,  // wTotalLength 39
 	0x01,        // bNumInterfaces 1
 	0x02,        // bConfigurationValue
 	0x09,        // iConfiguration (String Index)
@@ -53,9 +64,12 @@ static const __u8 config_desc[] =
 	0x04,        // bDescriptorType (Interface)
 	0x00,        // bInterfaceNumber 0
 	0x00,        // bAlternateSetting
-	0x03,        // bNumEndpoints 3
-	0x02,        // bInterfaceClass
-	0x02,        // bInterfaceSubClass
+	// 0x03,        // bNumEndpoints 3
+	0x06,        // bNumEndpoints 6
+	// 0x02,        // bInterfaceClass
+	0xFF,        // bInterfaceClass
+	// 0x02,        // bInterfaceSubClass
+	0xFF,        // bInterfaceSubClass
 	0xFF,        // bInterfaceProtocol
 	0x06,        // iInterface (String Index)
 
@@ -79,9 +93,42 @@ static const __u8 config_desc[] =
 	0x02,        // bmAttributes (Bulk)
 	0x40, 0x00,  // wMaxPacketSize 64
 	0x00,        // bInterval 0 (unit depends on device speed)
+
+	0x07,        // bLength
+	0x05,        // bDescriptorType (Endpoint)
+	0x02,        // bEndpointAddress (OUT/H2D)
+	0x02,        // bmAttributes (Bulk)
+	0x40, 0x00,  // wMaxPacketSize 64
+	0x00,        // bInterval 0 (unit depends on device speed)
+
+
+	0x07,        // bLength
+	0x05,        // bDescriptorType (Endpoint)
+	0x83,        // bEndpointAddress (IN/D2H)
+	0x02,        // bmAttributes (Bulk)
+	0x40, 0x00,  // wMaxPacketSize 64
+	0x00,        // bInterval 0 (unit depends on device speed)
+
+	0x07,        // bLength
+	0x05,        // bDescriptorType (Endpoint)
+	0x03,        // bEndpointAddress (OUT/H2D)
+	0x02,        // bmAttributes (Bulk)
+	0x40, 0x00,  // wMaxPacketSize 64
+	0x00,        // bInterval 0 (unit depends on device speed)
 };
 
+static void init_desc(void) {
+	static int __init = 0;
+	if (!__init) {
+		__init = 1;
+		assert(*(short*)(device_desc+8) == DEFAULT_VENDOR_ID);
+		*(short*)(device_desc+8) = VENDOR_ID;
+		*(short*)(device_desc+10) = PRODUCT_ID;
+	}
+}
+
 uint32_t dummy_get_device_desc(void *dst, size_t s) {
+	init_desc();
     assert(s <= sizeof(device_desc));
     memcpy(dst, device_desc, s);
     return s;
@@ -99,7 +146,9 @@ uint32_t dummy_get_size(void* b, size_t s) {
 }
 
 uint8_t dummy_get_control_byte(void) {
-    return get_byte();
+	uint8_t res = get_byte();
+	fprintf(stderr, "control byte: %x\n", res);
+    return res;
     // return 0;
 }
 

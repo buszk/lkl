@@ -30,7 +30,7 @@ void dump_stack(void)
 		stack++;
 	}
 	*ptr = '\x00';
-	pr_info("addr2line -e HARNESS %s\n", stack_addrs_str);
+	pr_info("addr2line -e tools/lkl/harness/afl-harness %s\n", stack_addrs_str);
 	pr_info("\n");
 }
 #endif

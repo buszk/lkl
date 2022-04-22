@@ -74,6 +74,27 @@ int set_target(const char* target) {
         return 0;
     }
 
+    if (!strcmp(target, "rsi_usb")) {
+        bus_type = BUS_USB;
+        usb_vendor = 0x1618;
+        usb_product = 9113;
+        return 0;
+    }
+
+    if (!strcmp(target, "ar5523")) {
+        bus_type = BUS_USB;
+        usb_vendor = 0x168c;
+        usb_product = 0x0001;
+        return 0;
+    }
+
+    if (!strcmp(target, "mwifiex_usb")) {
+        bus_type = BUS_USB;
+        usb_vendor = 0x1286;
+        usb_product = 0x2042;
+        return 0;
+    }
+
 
     if (getenv("PCI_VENDOR") &&
         atoi(getenv("PCI_VENDOR"))) {

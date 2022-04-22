@@ -49,11 +49,16 @@ static void lkl_hcd_stop(struct usb_hcd *hcd) {
 
 static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags) {
 	struct api_context *ctx;
-	if (usb_pipecontrol(urb->pipe) && usb_pipeout(urb->pipe)) {
-		ctx = urb->context;
-		ctx->status = 0;
-		complete(&ctx->done);
-		return 0;
+	if (usb_pipeout(urb->pipe)) {
+		if (usb_pipecontrol(urb->pipe)) {
+			ctx = urb->context;
+			ctx->status = 0;
+			complete(&ctx->done);
+			return 0;
+		} else if (usb_pipebulk(urb->pipe)) {
+			usb_hcd_giveback_urb(hcd, urb, 0);
+			return 0;
+		}
 	}
 	printk(KERN_INFO "urb: %lx, pipe: %x\n", (uint64_t)urb, urb->pipe);
 	printk(KERN_INFO "transfer_buffer_length: %x\n", urb->transfer_buffer_length);
