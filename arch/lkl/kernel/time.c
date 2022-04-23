@@ -134,7 +134,9 @@ void __init time_init(void)
 	timer_irq = lkl_get_free_irq("timer");
 	setup_irq(timer_irq, &irq0);
 
-	ret = clocksource_register_khz(&clocksource, 1000000);
+	// Original 1000000, but limits the timer to 0.01s.
+	// Changed to 100000 to allow 1000 execs/sec maximal throughput
+	ret = clocksource_register_khz(&clocksource, 100000);
 	if (ret)
 		pr_err("lkl: unable to register clocksource\n");
 
