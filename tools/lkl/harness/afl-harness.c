@@ -58,7 +58,6 @@ void load_firmware_disk(void) {
 
 int main(int argc, char**argv) {
     int ret;
-    char buf[64];
     char mount_dir[64] = "/lib/firmware";
 	struct lkl_kasan_meta kasan_meta = {0};
 
