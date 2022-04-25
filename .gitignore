@@ -149,5 +149,5 @@ x509.genkey
 
 tools/lkl/tests/disk-vfio-pci
 tools/lkl/tests/virt-pci
-*.log
-
+*log
+firmware.ext4
