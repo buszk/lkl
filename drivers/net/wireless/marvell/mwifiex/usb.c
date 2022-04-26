@@ -130,7 +130,8 @@ static int mwifiex_usb_recv(struct mwifiex_adapter *adapter,
 		default:
 			mwifiex_dbg(adapter, ERROR,
 				    "unknown recv_type %#x\n", recv_type);
-			return -1;
+			ret = -1;
+			goto exit_restore_skb;
 		}
 		break;
 	case MWIFIEX_USB_EP_DATA:
@@ -190,6 +191,8 @@ static void mwifiex_usb_rx_complete(struct urb *urb)
 				dev_kfree_skb_any(skb);
 			goto setup_for_next;
 		}
+		pr_info("skb->len: %x\n", skb->len);
+		pr_info("recv_length: %x\n", recv_length);
 		if (skb->len > recv_length)
 			skb_trim(skb, recv_length);
 		else
