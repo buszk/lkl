@@ -268,6 +268,7 @@ int lkl_pci_driver_run(void)
 	ret = probe_func(fuzzed_dev);
 end:
 	// lkl_cpu_put();
+	flush_scheduled_work();
 	return ret;
 }
 
