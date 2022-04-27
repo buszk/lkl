@@ -15,11 +15,13 @@
 
 #include "../afl.h"
 #include "../pmparser.h"
+#include "../targets.h"
 
 
 extern short pci_vender;
 extern short pci_device;
 extern short pci_revision;
+extern int bus_type; 
 
 void *input_buffer =NULL;
 ssize_t input_size =0;

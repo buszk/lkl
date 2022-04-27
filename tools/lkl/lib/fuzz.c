@@ -15,6 +15,7 @@ void fuzz_driver(void) {
         jmp_env_set = 1;
         // run driver probe
         ret = lkl_pci_driver_run();
+        fprintf(stderr, "driver probe ret: %d\n", ret);
         if (ret)
             goto end;
 

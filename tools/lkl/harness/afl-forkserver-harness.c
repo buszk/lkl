@@ -15,38 +15,21 @@
 
 #include "afl.h"
 #include "pmparser.h"
+#include "targets.h"
+
 
 
 void *input_buffer =NULL;
 ssize_t input_size =0;
 
-int set_target(const char*);
+static struct lkl_disk disk;
+static int disk_id = -1;
 
-void get_afl_input(char* fname) {
-    int fd;
-    struct stat buf;
-    // fprintf(stderr, "%s\n", fname);
-    fd = open(fname, O_RDONLY);
-    if (fd < 0)
-        perror(__func__), exit(1);
-    fstat(fd, &buf);
-    input_size = buf.st_size;
-    if (input_buffer)
-        free(input_buffer);
-    input_buffer = malloc(input_size);
-    if (!input_buffer)
-        abort();
-    assert(read(fd, input_buffer, input_size) == input_size);
-    close(fd);
-
-    // for (int i = 0; i < input_size; i++) {
-    //     fprintf(stderr, "%x", ((uint8_t*)input_buffer)[i]);
-    // }
-    // fprintf(stderr, "\n");
-    lkl_set_fuzz_input(input_buffer, input_size);
-}
+#include "afl-harness-common.h"
 
 int main(int argc, char**argv) {
+    int ret;
+    char mount_dir[64] = "/lib/firmware";
 	struct lkl_kasan_meta kasan_meta = {0};
 
     assert(argc > 2);
@@ -57,18 +40,34 @@ int main(int argc, char**argv) {
     }
 
 	fill_kasan_meta(&kasan_meta, "afl-forkserver-harness");
+    
+    __AFL_INIT();
 	lkl_kasan_init(&lkl_host_ops,
-			128 * 1024 * 1024,
+			512 * 1024 * 1024,
             kasan_meta.stack_base,
             kasan_meta.stack_size,
             kasan_meta.global_base,
             kasan_meta.global_size
             );
-
-    lkl_start_kernel(&lkl_host_ops, "mem=128M loglevel=8 lkl_pci=vfio");
-    set_fuzz_mode(MODE_FORKSERVER);
+    switch (bus_type)
+    {
+    case BUS_PCI:
+        lkl_start_kernel(&lkl_host_ops, "mem=512M loglevel=8 lkl_pci=fuzz");
+        break;
+    case BUS_USB:
+        lkl_start_kernel(&lkl_host_ops, "mem=512M loglevel=8 lkl_usb=fuzz");
+        break;
+    default:
+        fprintf(stderr, "Unknown BUS_TYPE %d\n", bus_type);
+        break;
+    }
+    load_firmware_disk();
+    ret = lkl_mount_dev(disk_id, 0, "ext4", 0, "", mount_dir, sizeof(mount_dir));
+    assert(ret == 0);
     get_afl_input(argv[2]);
     fuzz_driver();
+	lkl_umount_dev(disk_id, 0, 0, 1000);
+    lkl_disk_remove(disk);
     // lkl_sys_halt();
 
 	return 0;
