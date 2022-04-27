@@ -268,8 +268,20 @@ static const struct pci_device_id *pci_match_device(struct pci_driver *drv,
 	}
 	spin_unlock(&drv->dynids.lock);
 
-	if (!found_id)
+	if (!found_id) {
+		// Uncomment to dump pci ids
+		// if (drv->id_table) {
+		// 	const struct pci_device_id *ids = drv->id_table;
+		// 	while (ids->vendor || ids->subvendor || ids->class_mask) {
+		// 		if (ids->subvendor == 0xffffffff &&
+		// 			ids->subdevice == 0xffffffff)
+		// 			lkl_printf("pci:%x:%x %s\n",
+		// 					ids->vendor, ids->device, drv->name);
+		// 		ids++;
+		// 	}
+		// }
 		found_id = pci_match_id(drv->id_table, dev);
+	}
 
 	/* driver_override will always match, send a dummy id */
 	if (!found_id && dev->driver_override)

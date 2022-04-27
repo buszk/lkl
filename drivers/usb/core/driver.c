@@ -814,6 +814,13 @@ static int usb_device_match(struct device *dev, struct device_driver *drv)
 		intf = to_usb_interface(dev);
 		usb_drv = to_usb_driver(drv);
 
+		// Uncomment to dump usb id
+		// const struct usb_device_id *ids = usb_drv->id_table;
+		// for (; ids && ids->match_flags; ids++) {
+		// 	lkl_printf("usb:%x:%x %s\n",
+		// 			ids->idVendor, ids->idProduct, usb_drv->name);
+		// }
+
 		id = usb_match_id(intf, usb_drv->id_table);
 		if (id)
 			return 1;
