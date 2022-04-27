@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "targets.h"
@@ -92,6 +93,37 @@ int set_target(const char* target) {
         bus_type = BUS_USB;
         usb_vendor = 0x1286;
         usb_product = 0x2042;
+        return 0;
+    }
+
+    // Specify ids in argument
+    if (!strncmp(target, "pci:", 4)) {
+        bus_type = BUS_PCI;
+        char *token = strtok(target, ":");
+        assert(token);
+        token = strtok(NULL, ":");
+        assert(token);
+        pci_vender = strtol(token, NULL, 16);
+        token = strtok(NULL, ":");
+        assert(token);
+        pci_device = strtol(token, NULL, 16);
+        token = strtok(NULL, ":");
+        assert(token);
+        pci_revision = strtol(token, NULL, 16);
+        return 0;
+    }
+
+
+    if (!strncmp(target, "usb:", 4)) {
+        bus_type = BUS_USB;
+        char *token = strtok(target, ":");
+        assert(token);
+        token = strtok(NULL, ":");
+        assert(token);
+        usb_vendor = strtol(token, NULL, 16);
+        token = strtok(NULL, ":");
+        assert(token);
+        usb_product = strtol(token, NULL, 16);
         return 0;
     }
 
