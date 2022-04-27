@@ -26,7 +26,7 @@ short usb_product = 0;
 #define DEFAULT_PRODUCT_ID 0x9113
 
 #define VENDOR_ID (usb_vendor) ? usb_vendor : DEFAULT_VENDOR_ID
-#define PRODUCT_ID (usb_product) ? usb_product : DEFAULT_VENDOR_ID
+#define PRODUCT_ID (usb_vendor) ? usb_product : DEFAULT_PRODUCT_ID
 
 static __u8 device_desc[] =
 {

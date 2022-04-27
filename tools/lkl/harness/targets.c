@@ -78,7 +78,7 @@ int set_target(const char* target) {
     if (!strcmp(target, "rsi_usb")) {
         bus_type = BUS_USB;
         usb_vendor = 0x1618;
-        usb_product = 9113;
+        usb_product = 0x9113;
         return 0;
     }
 
