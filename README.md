@@ -14,6 +14,13 @@ make
 ```
 
 ```
+# Generate firmware image
+cd lkl
+./gen_firmware_fs.sh
+export LKL_FIRMWARE_PATH=$(pwd)/firmware.ext4
+```
+
+```
 # Install customized lkl
 git clone https://github.com/buszk/lkl
 cd lkl

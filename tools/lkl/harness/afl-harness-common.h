@@ -23,7 +23,7 @@ static void get_afl_input(char* fname) {
 }
 
 static void load_firmware_disk(void) {
-    disk.fd = open("/home/buszk/Workspace/git/lkl/firmware.ext4", O_RDWR);
+    disk.fd = open(getenv("LKL_FIRMWARE_PATH"), O_RDWR);
     assert(disk.fd >= 0);
     disk.ops = NULL;
     disk_id = lkl_disk_add(&disk);;
