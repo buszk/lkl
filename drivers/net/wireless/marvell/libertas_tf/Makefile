@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+AFLCOV := y
 libertas_tf-objs := main.o cmd.o
 
 libertas_tf_usb-objs += if_usb.o

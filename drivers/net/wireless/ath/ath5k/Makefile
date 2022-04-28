@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: ISC
+AFLCOV := y
 ath5k-y				+= caps.o
 ath5k-y				+= initvals.o
 ath5k-y				+= eeprom.o

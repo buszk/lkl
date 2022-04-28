@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: ISC
+AFLCOV := y
 #
 # Makefile fragment for Broadcom 802.11 Networking Device Driver
 #

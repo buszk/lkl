@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+AFLCOV := y
 rtl8723be-objs :=		\
 		dm.o		\
 		fw.o		\

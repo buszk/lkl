@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+AFLCOV := y
 rtl8192cu-objs :=		\
 		dm.o		\
 		hw.o		\

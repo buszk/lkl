@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+AFLCOV := y
 obj-$(CONFIG_ZD1211RW) += zd1211rw.o
 
 zd1211rw-objs := zd_chip.o zd_mac.o \

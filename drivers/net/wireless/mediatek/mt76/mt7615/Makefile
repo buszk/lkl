@@ -1,4 +1,5 @@
 #SPDX-License-Identifier: ISC
+AFLCOV := y
 
 obj-$(CONFIG_MT7615E) += mt7615e.o
 

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+AFLCOV := y
 obj-$(CONFIG_MT7601U)	+= mt7601u.o
 
 mt7601u-objs	= \
