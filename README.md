@@ -51,7 +51,9 @@ make clean
 
 ## Fuzzing
 Currently supported targets are:
-ath9k, ath10k_pci, rtwpci, 8139cp, atlantic, stmmac_pci and snic
+ath9k, ath10k_pci, rtwpci, 8139cp, atlantic, stmmac_pci, snic, ar5523 rsi_usb and mwifiex_usb.
+
+Or you can use the syntax: `pci:[vendor]:[device]:[revision]` or `usb:[vendor]:[product]` to test arbitrary device, but remember to enable them in [defconfig](https://github.com/buszk/lkl/blob/master/arch/lkl/configs/defconfig).
 
 ```
 cd AFLplusplus
