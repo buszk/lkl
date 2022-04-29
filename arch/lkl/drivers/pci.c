@@ -258,6 +258,17 @@ struct device *fuzzed_dev = 0;
 
 static struct platform_device *dev;
 
+#include <linux/usb.h>
+extern struct usb_device *udev;
+
+struct device_attach_data {
+	struct device *dev;
+	bool check_async;
+	bool want_async;
+	bool have_async;
+};
+extern int __device_attach_driver(struct device_driver *drv, void *_data);
+extern void driver_sysfs_remove(struct device *dev);
 
 int fixed_ids = 1;
 void lkl_set_fuzz_ids(void) {
@@ -265,10 +276,32 @@ void lkl_set_fuzz_ids(void) {
 }
 int lkl_pci_driver_run(void)
 {
-    int ret = 0;
+    int ret = 0, temp = 0;
 	// ret = lkl_cpu_get();
 	// if (ret < 0)
 	// 	return ret;
+	if (!fixed_ids) {
+		// USB stuff
+		if (fuzzed_dev->bus == &usb_bus_type && udev)
+			lkl_ops->usb_ops->get_device_desc(&udev->descriptor, sizeof(udev->descriptor));
+
+		// PCI stuff
+		if (fuzzed_dev->bus == &pci_bus_type) {
+			struct pci_dev *pci_dev = to_pci_dev(fuzzed_dev);
+			lkl_ops->pci_ops->read(NULL, 0, 4, &temp);
+			pci_dev->vendor = temp & 0xffff;
+			pci_dev->device = temp >> 16;
+			lkl_ops->pci_ops->read(NULL, 8, 4, &temp);
+			pci_dev->revision = temp & 0xff;
+			struct device_attach_data data = {
+				.dev		= fuzzed_dev,
+				.check_async	= false,
+				.want_async	= false,
+			};
+			driver_sysfs_remove(fuzzed_dev);
+			bus_for_each_drv(fuzzed_dev->bus, NULL, &data, __device_attach_driver);
+		}
+	}
 	ret = probe_func(fuzzed_dev);
 end:
 	// lkl_cpu_put();

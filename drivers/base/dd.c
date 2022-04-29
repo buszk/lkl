@@ -471,7 +471,7 @@ fail:
 	return ret;
 }
 
-static void driver_sysfs_remove(struct device *dev)
+void driver_sysfs_remove(struct device *dev)
 {
 	struct device_driver *drv = dev->driver;
 
@@ -842,7 +842,7 @@ struct device_attach_data {
 	bool have_async;
 };
 
-static int __device_attach_driver(struct device_driver *drv, void *_data)
+int __device_attach_driver(struct device_driver *drv, void *_data)
 {
 	struct device_attach_data *data = _data;
 	struct device *dev = data->dev;

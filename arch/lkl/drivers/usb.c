@@ -208,11 +208,11 @@ static const struct hc_driver lkl_hc_driver = {
 };
 
 
+struct usb_device *udev;
 static int lkl_usb_probe(struct platform_device *pdev)
 {
 	int ret;
 	struct usb_hcd		*hcd;
-	struct usb_device *udev;
 	hcd = usb_create_hcd(&lkl_hc_driver, &pdev->dev, dev_name(&pdev->dev));
 	ret = usb_add_hcd(hcd, 11, 0);
 	if (ret) {
