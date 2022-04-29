@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
+AFLCOV := y
 # Copyright (C) 2003 - 2009 NetXen, Inc.
 # Copyright (C) 2009 - QLogic Corporation.
 # All rights reserved.

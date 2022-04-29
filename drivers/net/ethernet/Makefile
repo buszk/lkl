@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+AFLCOV := y
 #
 # Makefile for the Linux network Ethernet device drivers.
 #

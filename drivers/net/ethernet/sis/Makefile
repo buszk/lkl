@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+AFLCOV := y
 #
 # Makefile for Silicon Integrated Systems (SiS) network device drivers.
 #

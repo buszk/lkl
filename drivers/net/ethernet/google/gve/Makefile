@@ -1,4 +1,5 @@
 # Makefile for the Google virtual Ethernet (gve) driver
+AFLCOV := y
 
 obj-$(CONFIG_GVE) += gve.o
 gve-objs := gve_main.o gve_tx.o gve_rx.o gve_ethtool.o gve_adminq.o

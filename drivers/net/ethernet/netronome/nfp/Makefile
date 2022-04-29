@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+AFLCOV := y
 obj-$(CONFIG_NFP)	+= nfp.o
 
 nfp-objs := \

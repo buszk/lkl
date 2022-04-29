@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+AFLCOV := y
 # Copyright(c) 1999 - 2006 Intel Corporation.
 
 #

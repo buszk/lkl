@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+AFLCOV := y
 #
 # Makefile for the A Semi network device drivers.
 #
