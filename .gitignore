@@ -151,3 +151,4 @@ tools/lkl/tests/disk-vfio-pci
 tools/lkl/tests/virt-pci
 *log
 firmware.ext4
+generated/*

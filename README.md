@@ -71,8 +71,13 @@ cd AFLplusplus
 Uncomment the code in [this commit](https://github.com/buszk/lkl/commit/8ece62693c50d682e730fc7efaf2268b14d13794)
 ```
 cd lkl
+# Dump ids to file
 ./dump_ids.sh
 cat pci_ids.log usb_ids.log
+
+# Parse dump and generate input for fuzzing
+./parse_ids.py
+ls generated/* 
 ```
 
 ## Development
