@@ -357,7 +357,7 @@ public:
         if (call->getDirectCallee()) {
             string fname = call->getDirectCallee()->getNameInfo().getName().getAsString();
             if (sleep_funcs.count(fname) > 0) {
-                rewriter.InsertText(call->getBeginLoc(), ";// ");
+                rewriter.InsertText(call->getBeginLoc(), "nowait_");
             }
             else if (wait_funcs.count(fname) > 0) {
                 rewriter.InsertText(call->getBeginLoc(), "nowait_");
