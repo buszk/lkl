@@ -23,6 +23,7 @@
 short pci_vender = 0;
 short pci_device = 0;
 short pci_revision = 0;
+extern int fuzz_ids;
 
 #define DEFAULT_VENDOR_ID	0x1d6a
 #define DEFAULT_DEVICE_ID	0x1
@@ -192,12 +193,19 @@ static int dummy_pci_read(struct lkl_pci_dev *dev, int where, int size,
 {
 	// lkl_printf("dummy_pci_read: %02x[%02x]\n", where, size);
 	if (where == 0 && size == 4) {
-		*(uint16_t *)val = VENDOR_ID; 	// vendor_id
-		*((uint16_t *)val+1) = DEVICE_ID; 	// device_id
+		static int first_id_1 = 0;
+		fprintf(stderr, "READING IDs\n");
+		// Extract ids from fuzz input to overwrite exsisting ids
+		*(uint16_t *)val = (first_id_1 && fuzz_ids) ? get_word() : VENDOR_ID; 	// vendor_id
+		*((uint16_t *)val+1) = (first_id_1 && fuzz_ids) ? get_word() : DEVICE_ID; 	// device_id
+		first_id_1 |= 1;
 		return size;
 	}
 	else if (where == 8 && size == 4) {
-		*((uint32_t *)val) = REVISION_ID;		// revision_id
+		static int first_id_2 = 0;
+		// Extract ids from fuzz input to overwrite exsisting ids
+		*((uint32_t *)val) = (first_id_2 && fuzz_ids) ? get_byte() : REVISION_ID;		// revision_id
+		first_id_2 |= 1;
 		return size;
 	}
 	else if (where == 0xc && size == 1) {

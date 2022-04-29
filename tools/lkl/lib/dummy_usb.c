@@ -21,6 +21,7 @@
 
 short usb_vendor = 0;
 short usb_product = 0;
+extern int fuzz_ids;
 
 #define DEFAULT_VENDOR_ID 0x1618
 #define DEFAULT_PRODUCT_ID 0x9113
@@ -119,11 +120,20 @@ static __u8 config_desc[] =
 
 static void init_desc(void) {
 	static int __init = 0;
+	if (__init == 1 && fuzz_ids) {
+		// Extract ids from fuzz input to overwrite exsisting ids
+		*(short*)(device_desc+8) = get_word();
+		*(short*)(device_desc+10) = get_word();
+		fprintf(stderr, "2: vendor: %04x product: %04x\n",
+				*(short*)(device_desc+8), *(short*)(device_desc+10));
+	}
 	if (!__init) {
 		__init = 1;
 		assert(*(short*)(device_desc+8) == DEFAULT_VENDOR_ID);
-		*(short*)(device_desc+8) = VENDOR_ID;
-		*(short*)(device_desc+10) = PRODUCT_ID;
+		// *(short*)(device_desc+8) = VENDOR_ID;
+		// *(short*)(device_desc+10) = PRODUCT_ID;
+		fprintf(stderr, "1: vendor: %04x product: %04x\n",
+				*(short*)(device_desc+8), *(short*)(device_desc+10));
 	}
 }
 
