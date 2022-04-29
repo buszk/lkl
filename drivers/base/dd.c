@@ -48,9 +48,10 @@ struct jmp_buf_data*  push_jmp_buf(void) {
 }
 
 struct jmp_buf_data* pop_jmp_buf(void) {
-	printk(KERN_INFO "%s: %d\n", __func__, current->jmp_buf_count);
-	if (current->jmp_buf_count)
-		return &current->jmp_buf_stack[--current->jmp_buf_count];
+	if (current->jmp_buf_count) {
+		printk(KERN_INFO "%s: %d\n", __func__, --current->jmp_buf_count);
+		return &current->jmp_buf_stack[current->jmp_buf_count];
+	}
 	return NULL;
 }
 
