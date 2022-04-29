@@ -70,13 +70,9 @@ cd AFLplusplus
 ## Dump device id
 Uncomment the code in [this commit](https://github.com/buszk/lkl/commit/8ece62693c50d682e730fc7efaf2268b14d13794)
 ```
-# Dump pci id
-tools/lkl/harness/afl-harness pci:ff:ff:1 random 2>&1|tee log
-grep pci: log |egrep -v  LKL\|cavium_rng\|nvme
-
-# Dump usb id
-tools/lkl/harness/afl-harness usb:1:1 random 2>&1|tee log
-grep usb: log
+cd lkl
+./dump_ids.sh
+cat pci_ids.log usb_ids.log
 ```
 
 ## Development
