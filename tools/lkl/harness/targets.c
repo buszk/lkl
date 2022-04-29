@@ -5,6 +5,7 @@
 
 
 int bus_type = BUS_DEFAULT;
+int fuzz_ids = 0;
 int set_target(const char* target) {
     // atlantic
     if (!strcmp(target, "atlantic")) {
@@ -93,6 +94,21 @@ int set_target(const char* target) {
         bus_type = BUS_USB;
         usb_vendor = 0x1286;
         usb_product = 0x2042;
+        return 0;
+    }
+
+    // For fuzzing campaign
+    if (!strcmp(target, "pci:random") ||
+        !strcmp(target, "pci:fuzz")) {
+        bus_type = BUS_PCI;
+        fuzz_ids = 1;
+        return 0;
+    }
+
+    if (!strcmp(target, "usb:random") ||
+        !strcmp(target, "usb:fuzz")) {
+        bus_type = BUS_USB;
+        fuzz_ids = 1;
         return 0;
     }
 

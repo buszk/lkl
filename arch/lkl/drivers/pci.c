@@ -259,6 +259,10 @@ struct device *fuzzed_dev = 0;
 static struct platform_device *dev;
 
 
+int fixed_ids = 1;
+void lkl_set_fuzz_ids(void) {
+	fixed_ids = 0;
+}
 int lkl_pci_driver_run(void)
 {
     int ret = 0;

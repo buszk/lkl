@@ -972,6 +972,8 @@ void lkl_dump_stack(void);
 void fuzz_driver(void);
 
 int lkl_cpu_put(void);
+
+void lkl_set_fuzz_ids(void);
 #ifdef __cplusplus
 }
 #endif

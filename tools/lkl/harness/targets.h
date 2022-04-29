@@ -6,6 +6,7 @@ extern short pci_revision;
 extern short usb_vendor;
 extern short usb_product;
 
+extern int fuzz_ids;
 extern int bus_type;
 #define BUS_DEFAULT 0
 #define BUS_PCI 1

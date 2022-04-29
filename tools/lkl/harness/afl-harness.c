@@ -64,6 +64,8 @@ int main(int argc, char**argv) {
     load_firmware_disk();
     ret = lkl_mount_dev(disk_id, 0, "ext4", 0, "", mount_dir, sizeof(mount_dir));
     assert(ret == 0);
+    if (fuzz_ids)
+        lkl_set_fuzz_ids();
     // static int counter = 0;
     // while (counter ++ < 2) {
     while (__AFL_LOOP(1000)) {

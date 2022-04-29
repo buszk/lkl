@@ -29,7 +29,7 @@ endif
 LDFLAGS_vmlinux += -r
 LKL_ENTRY_POINTS := lkl_start_kernel lkl_sys_halt lkl_syscall lkl_trigger_irq \
 	lkl_get_free_irq lkl_put_irq lkl_is_running lkl_bug lkl_printf \
-	lkl_kasan_init lkl_set_fuzz_input \
+	lkl_kasan_init lkl_set_fuzz_input lkl_set_fuzz_ids\
 	lkl_pci_driver_run lkl_pci_driver_remove lkl_set_input_end lkl_dump_stack \
 	lkl_cpu_put
 

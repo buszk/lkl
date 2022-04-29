@@ -38,6 +38,7 @@ int main(int argc, char**argv) {
         fprintf(stderr, "Please provide a device driver target to fuzz");
         abort();
     }
+    assert(!fuzz_ids && "fork server mode does not support fuzzing with ids");
 
 	fill_kasan_meta(&kasan_meta, "afl-forkserver-harness");
     
