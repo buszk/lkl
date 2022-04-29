@@ -119,7 +119,6 @@ long lkl_syscall(long no, long *params)
 		}
 	}
 
-	printk(KERN_INFO "switching to host task: %llx\n", (uint64_t)task);
 	switch_to_host_task(task);
 
 	ret = run_syscall(no, params);
