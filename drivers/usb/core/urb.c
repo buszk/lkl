@@ -696,7 +696,7 @@ void usb_kill_urb(struct urb *urb)
 	atomic_inc(&urb->reject);
 
 	usb_hcd_unlink_urb(urb, -ENOENT);
-	//wait_event(usb_kill_urb_queue, atomic_read(&urb->use_count) == 0);
+	wait_event(usb_kill_urb_queue, atomic_read(&urb->use_count) == 0);
 
 	atomic_dec(&urb->reject);
 }

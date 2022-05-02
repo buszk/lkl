@@ -51,9 +51,7 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 	struct api_context *ctx;
 	if (usb_pipeout(urb->pipe)) {
 		if (usb_pipecontrol(urb->pipe)) {
-			ctx = urb->context;
-			ctx->status = 0;
-			complete(&ctx->done);
+			usb_hcd_giveback_urb(hcd, urb, 0);
 			return 0;
 		} else if (usb_pipebulk(urb->pipe)) {
 			usb_hcd_giveback_urb(hcd, urb, 0);
@@ -101,14 +99,14 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 			break;
 		default:
 			printk(KERN_INFO "Unknown control request\n");
-			memset(urb->transfer_buffer, 'A', urb->transfer_buffer_length);
+			lkl_ops->usb_ops->get_data(urb->transfer_buffer, urb->transfer_buffer_length);
 			urb->actual_length = urb->transfer_buffer_length;
 			break;
 		}
 		ctx->status = 0;
 		complete(&ctx->done);
 	}
-	else if (usb_pipebulk(urb->pipe) && usb_pipein(urb->pipe)) {
+	else if ((usb_pipebulk(urb->pipe) || usb_pipeint(urb->pipe)) && usb_pipein(urb->pipe)) {
 		// lkl_bug("bulk pipe\n");
 		urb->actual_length = 
 			lkl_ops->usb_ops->get_data(urb->transfer_buffer, urb->transfer_buffer_length);
@@ -129,7 +127,14 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 }
 
 static int lkl_hcd_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status) {
-	printk(KERN_INFO "%s\n", __func__);
+	printk(KERN_INFO "%s %llx\n", __func__, (uint64_t)urb);
+	//usb_anchor_suspend_wakeups(anchor);
+	usb_unanchor_urb(urb);
+	//usb_anchor_resume_wakeups(anchor);
+	atomic_dec(&urb->use_count);
+	if (unlikely(atomic_read(&urb->reject)))
+		wake_up(&usb_kill_urb_queue);
+	//usb_put_urb(urb);
 	return 0;
 }
 
