@@ -73,7 +73,9 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 			switch (req->wValue >> 8)
 			{
 			case USB_DT_DEVICE:
-				printk(KERN_INFO "Unimplemented USB_DT_DEVICE\n");
+				printk(KERN_INFO "USB_DT_DEVICE\n");
+				urb->actual_length =
+					lkl_ops->usb_ops->get_device_desc(urb->transfer_buffer, req->wLength, 0);
 				break;
 			case USB_DT_CONFIG:
 				printk(KERN_INFO "USB_DT_CONFIG\n");
@@ -148,6 +150,7 @@ static int lkl_hcd_hub_status_data(struct usb_hcd *hcd, char *buf) {
 	return 0;
 }
 
+int port_status_queried = 0;
 static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 								u16 wIndex, char *buf, u16 wLength) {
 	int retval = 0;
@@ -164,15 +167,11 @@ static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		memcpy(buf, root_hub_hub_des, retval);
 		break;
 	case GetPortStatus:
-		lkl_printf("GetPortStatus\n");
-		static int cnt = 0;
-		if (cnt) {
-			*(uint32_t *)buf = 2;
-			cnt = 0;
+		*(uint32_t *)buf = 0;
+		if (port_status_queried ++ < 3) {
+			*(uint32_t *)buf = 3;
 		}
-		else {
-			*(uint32_t *)buf = 0;
-		}
+		lkl_printf("GetPortStatus: %x\n", *(uint32_t *)buf);
 		retval = 4;
 		break;
 	case SetPortFeature:
@@ -187,6 +186,11 @@ static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 	}
 	return retval;
 }
+
+static int lkl_hcd_address_device(struct usb_hcd *, struct usb_device *udev) {
+	return 0;
+}
+
 
 static const struct hc_driver lkl_hc_driver = {
 	.description =		"LKL USB HUB",
@@ -210,6 +214,8 @@ static const struct hc_driver lkl_hc_driver = {
 
 	.hub_status_data =	lkl_hcd_hub_status_data,
 	.hub_control =		lkl_hcd_hub_control,
+
+	.address_device =	lkl_hcd_address_device,
 };
 
 
@@ -228,7 +234,7 @@ static int lkl_usb_probe(struct platform_device *pdev)
 	// usb_set_configuration(udev, 0);
 	// udev->descriptor.bNumConfigurations = 1;
 	// memcpy(&udev->descriptor, device_desc, sizeof(udev->descriptor));
-	lkl_ops->usb_ops->get_device_desc(&udev->descriptor, sizeof(udev->descriptor));
+	lkl_ops->usb_ops->get_device_desc(&udev->descriptor, sizeof(udev->descriptor), 0);
 	udev->ep0.desc.wMaxPacketSize = 0x40;
 	udev->state = USB_STATE_ADDRESS;
 	usb_new_device(udev);

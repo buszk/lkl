@@ -118,29 +118,31 @@ static __u8 config_desc[] =
 	0x00,        // bInterval 0 (unit depends on device speed)
 };
 
-static void init_desc(void) {
-	static int __init = 0;
-	if (__init == 1 && fuzz_ids) {
+int usb_init_desc_counter = 0;
+static void init_desc(int new) {
+	fprintf(stderr, "init_desc: %d\n", usb_init_desc_counter);
+	if (new && usb_init_desc_counter && fuzz_ids) {
 		// Extract ids from fuzz input to overwrite exsisting ids
 		*(short*)(device_desc+8) = get_word();
 		*(short*)(device_desc+10) = get_word();
 		fprintf(stderr, "2: vendor: %04x product: %04x\n",
 				*(short*)(device_desc+8), *(short*)(device_desc+10));
 	}
-	if (!__init) {
-		__init = 1;
+	if (!usb_init_desc_counter) {
 		assert(*(short*)(device_desc+8) == DEFAULT_VENDOR_ID);
-		// *(short*)(device_desc+8) = VENDOR_ID;
-		// *(short*)(device_desc+10) = PRODUCT_ID;
+		*(short*)(device_desc+8) = VENDOR_ID;
+		*(short*)(device_desc+10) = PRODUCT_ID;
 		fprintf(stderr, "1: vendor: %04x product: %04x\n",
 				*(short*)(device_desc+8), *(short*)(device_desc+10));
 	}
+	usb_init_desc_counter++;
 }
 
-uint32_t dummy_get_device_desc(void *dst, size_t s) {
-	init_desc();
-    assert(s <= sizeof(device_desc));
-    memcpy(dst, device_desc, s);
+uint32_t dummy_get_device_desc(void *dst, size_t s, int new) {
+	init_desc(new);
+    // assert(s <= sizeof(device_desc));
+    memcpy(dst, device_desc, 
+		(s <= sizeof(device_desc)) ? s : sizeof(device_desc));
     return s;
 }
 

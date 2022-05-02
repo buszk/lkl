@@ -48,7 +48,7 @@ struct lkl_dev_pci_ops {
 struct lkl_dev_usb_ops {
 	unsigned char (*get_control_byte)(void);
 	unsigned int (*get_data)(void*, unsigned long);
-	unsigned int (*get_device_desc)(void*, unsigned long);
+	unsigned int (*get_device_desc)(void*, unsigned long, int);
 	unsigned int (*get_config_desc)(void*, unsigned long);
 };
 
