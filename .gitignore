@@ -152,3 +152,4 @@ tools/lkl/tests/virt-pci
 *log
 firmware.ext4
 generated/*
+downloads/*
