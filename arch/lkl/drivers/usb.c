@@ -127,7 +127,14 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 }
 
 static int lkl_hcd_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status) {
-	printk(KERN_INFO "%s\n", __func__);
+	printk(KERN_INFO "%s %llx\n", __func__, (uint64_t)urb);
+	//usb_anchor_suspend_wakeups(anchor);
+	usb_unanchor_urb(urb);
+	//usb_anchor_resume_wakeups(anchor);
+	atomic_dec(&urb->use_count);
+	if (unlikely(atomic_read(&urb->reject)))
+		wake_up(&usb_kill_urb_queue);
+	//usb_put_urb(urb);
 	return 0;
 }
 
