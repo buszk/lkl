@@ -49,9 +49,12 @@ static void lkl_hcd_stop(struct usb_hcd *hcd) {
 
 static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags) {
 	struct api_context *ctx;
+	struct usb_ctrlrequest *req;
 	if (usb_pipeout(urb->pipe)) {
 		if (usb_pipecontrol(urb->pipe)) {
 			usb_hcd_giveback_urb(hcd, urb, 0);
+			req = (struct usb_ctrlrequest*)urb->setup_packet;
+			urb->actual_length = req->wLength;
 			return 0;
 		} else if (usb_pipebulk(urb->pipe)) {
 			usb_hcd_giveback_urb(hcd, urb, 0);
@@ -63,7 +66,6 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 	// TODO: check urb->setup_packet, (struct usb_ctrlrequest)
 	// Check if bRequestType == USB_REQ_GET_DESCRIPTOR
 	if (usb_pipecontrol(urb->pipe) && usb_pipein(urb->pipe)) {
-		struct usb_ctrlrequest *req;
 		req = (struct usb_ctrlrequest*)urb->setup_packet;
 		ctx = urb->context;
 		printk(KERN_INFO "bRequest: %x\n", req->bRequest);
