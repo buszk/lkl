@@ -168,7 +168,7 @@ static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		break;
 	case GetPortStatus:
 		*(uint32_t *)buf = 0;
-		if (port_status_queried ++ < 3) {
+		if (port_status_queried ++ < 4) {
 			*(uint32_t *)buf = 3;
 		}
 		lkl_printf("GetPortStatus: %x\n", *(uint32_t *)buf);

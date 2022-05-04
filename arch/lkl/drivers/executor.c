@@ -37,6 +37,7 @@ int lkl_pci_driver_run(void)
 			lkl_ops->usb_ops->get_device_desc(&udev->descriptor, sizeof(udev->descriptor), 1);
 			udev->state = USB_STATE_ADDRESS;
 			port_status_queried = 0;
+			usb_reset_device(udev);
 		}
 
 		// PCI stuff
