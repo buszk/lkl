@@ -1,4 +1,16 @@
 #!/bin/bash
+DEBUG=0
+while getopts "d" o; do
+    case "${o}" in
+        d)
+			DEBUG=1
+            shift
+            ;;
+        *)
+            ;;
+    esac
+done
+
 function fuzz {
     harness=~/Workspace/git/lkl/tools/lkl/harness/$1
     target=$2:fuzz
@@ -10,15 +22,20 @@ function fuzz {
     mkdir $output
     cpu=0
     count=1
-    AFL_NO_UI=1 ./afl-fuzz -b $cpu -V $secs -i $input -o $output -t 1000 -M fuzzer$count -- \
-        $harness $target @@ &>/dev/null &
-    while [ $count -lt $cores ]; do
-        cpu=$(($cpu+1))
-        count=$(($count+1))
-        AFL_NO_UI=1 ./afl-fuzz -b $cpu -V $secs -i $input -o $output -t 1000 -S fuzzer$count -- \
-            $harness $target @@ &>/dev/null &
-    done
-    wait
+	if [ $DEBUG -eq 1 ]; then
+		AFL_NO_UI=1 ./afl-fuzz -b $cpu -V 10 -i $input -o $output -t 1000 -M fuzzer$count -- \
+			$harness $target @@
+	else
+		AFL_NO_UI=1 ./afl-fuzz -b $cpu -V $secs -i $input -o $output -t 1000 -M fuzzer$count -- \
+			$harness $target @@ &>/dev/null &
+		while [ $count -lt $cores ]; do
+			cpu=$(($cpu+1))
+			count=$(($count+1))
+			AFL_NO_UI=1 ./afl-fuzz -b $cpu -V $secs -i $input -o $output -t 1000 -S fuzzer$count -- \
+				$harness $target @@ &>/dev/null &
+		done
+		wait
+	fi
 
     total_execs=$(cat $output/fuzzer*/fuzzer_stats |grep execs_done| awk '{print $3}'|awk '{s+=$1} END {print s}')
     echo Fuzzing speed: $1 $target $cores $(($total_execs/$secs))
