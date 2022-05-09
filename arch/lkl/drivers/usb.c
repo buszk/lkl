@@ -59,6 +59,8 @@ static int lkl_hcd_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_f
 		} else if (usb_pipebulk(urb->pipe)) {
 			usb_hcd_giveback_urb(hcd, urb, 0);
 			return 0;
+		} else {
+			lkl_bug("Unimplemented outpipe type\n");
 		}
 	}
 	printk(KERN_INFO "urb: %lx, pipe: %x\n", (uint64_t)urb, urb->pipe);
@@ -169,10 +171,7 @@ static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		memcpy(buf, root_hub_hub_des, retval);
 		break;
 	case GetPortStatus:
-		*(uint32_t *)buf = 0;
-		if (port_status_queried ++ < 4) {
-			*(uint32_t *)buf = 3;
-		}
+		*(uint32_t *)buf = 3;
 		lkl_printf("GetPortStatus: %x\n", *(uint32_t *)buf);
 		retval = 4;
 		break;
