@@ -32,7 +32,7 @@ void fuzz_driver(void) {
             if (idx > 0) {
                 ret = lkl_if_up(idx);
                 fprintf(stderr, "%s: lkl_if_up: %d\n", ifnames[i], ret);
-                if (fuzz_mode != MODE_FORKSERVER) {
+                if (ret >= 0 && fuzz_mode != MODE_FORKSERVER) {
                     ret = lkl_if_down(idx);
                     fprintf(stderr, "%s: lkl_if_down: %d\n", ifnames[i], ret);
                 }
