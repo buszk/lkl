@@ -15,6 +15,7 @@
 #include <asm/cpu.h>
 #include <asm/host_ops.h>
 
+#define MAGIC_USB_PORT 7	// Emulate device on the port of root hub
 
 static int giveback_counter = 0;
 
@@ -155,10 +156,22 @@ static int lkl_hcd_hub_status_data(struct usb_hcd *hcd, char *buf) {
 }
 
 int port_status_queried = 0;
+uint32_t hcd_port_status = 0;
+
+static void set_link_state(void)
+{
+	if ((hcd_port_status & USB_PORT_STAT_POWER) == 0) {
+		hcd_port_status = 0;
+	} else {
+		hcd_port_status |= USB_PORT_STAT_CONNECTION;
+		if ((hcd_port_status & USB_PORT_STAT_ENABLE) == 0)
+			hcd_port_status &= ~USB_PORT_STAT_SUSPEND;
+	}
+}
+
 static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 								u16 wIndex, char *buf, u16 wLength) {
 	int retval = 0;
-	uint8_t type = wValue >> 8;
 	switch (typeReq) {
 	case GetHubStatus:
 		lkl_printf("GetHubStatus\n");
@@ -170,16 +183,53 @@ static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 		retval = min_t(unsigned int, sizeof(root_hub_hub_des), wLength);
 		memcpy(buf, root_hub_hub_des, retval);
 		break;
-	case GetPortStatus:
-		*(uint32_t *)buf = 3;
+	case GetPortStatus: {
+		if (wIndex != MAGIC_USB_PORT) {
+			*(uint32_t *)buf = 0;
+			break;
+		}
+		if ((hcd_port_status & USB_PORT_STAT_RESET) != 0) {
+			hcd_port_status |= (USB_PORT_STAT_C_RESET << 16);
+			hcd_port_status &= ~USB_PORT_STAT_RESET;
+			hcd_port_status |= USB_PORT_STAT_ENABLE;
+			hcd_port_status |= USB_PORT_STAT_HIGH_SPEED;
+		}
+		set_link_state();
+		*(uint32_t *)buf = hcd_port_status;
 		lkl_printf("GetPortStatus: %x\n", *(uint32_t *)buf);
 		retval = 4;
 		break;
+	}
 	case SetPortFeature:
-		lkl_printf("SetPortFeature\n");
+		if (wIndex != 7)
+			break;
+		lkl_printf("SetPortFeature %d\n", wValue);
+		switch (wValue) {
+		case USB_PORT_FEAT_POWER:
+			hcd_port_status |= USB_PORT_STAT_POWER;
+			set_link_state();
+			break;
+		case USB_PORT_FEAT_RESET:
+			hcd_port_status &= ~(USB_PORT_STAT_ENABLE
+				| USB_PORT_STAT_LOW_SPEED
+				| USB_PORT_STAT_HIGH_SPEED);
+		default:
+			if ((hcd_port_status & USB_PORT_STAT_POWER) != 0)
+				hcd_port_status |= (1 << wValue);
+			set_link_state();
+		}
 		break;
 	case ClearPortFeature:
-		lkl_printf("ClearPortFeature\n");
+		if (wIndex != MAGIC_USB_PORT)
+			break;
+		lkl_printf("ClearPortFeature %x\n", wValue);
+		switch (wValue) {
+		case USB_PORT_FEAT_SUSPEND:
+		case USB_PORT_FEAT_POWER:
+			break;
+		default:
+			hcd_port_status &= ~(1 << wValue);
+		}
 		break;
 	default:
 		lkl_printf("lkl_hcd_hub_control: default: %x\n", typeReq);
@@ -188,7 +238,7 @@ static int lkl_hcd_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 	return retval;
 }
 
-static int lkl_hcd_address_device(struct usb_hcd *, struct usb_device *udev) {
+static int lkl_hcd_address_device(struct usb_hcd *hcd, struct usb_device *udev) {
 	return 0;
 }
 
@@ -231,7 +281,7 @@ static int lkl_usb_probe(struct platform_device *pdev)
 		printk(KERN_INFO "usb_add_hcd: return %d\n", ret);
 		goto end;
 	}
-	udev = usb_alloc_dev(hcd->self.root_hub, &hcd->self, 7);
+	udev = usb_alloc_dev(hcd->self.root_hub, &hcd->self, MAGIC_USB_PORT);
 	// usb_set_configuration(udev, 0);
 	// udev->descriptor.bNumConfigurations = 1;
 	// memcpy(&udev->descriptor, device_desc, sizeof(udev->descriptor));
