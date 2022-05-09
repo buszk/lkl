@@ -86,7 +86,7 @@ uint8_t get_control(void) {
 }
 
 void get_size(void* b, size_t s) {
-    fprintf(stderr, "get_size\n");
+    fprintf(stderr, "get_size %ld\n", s);
     if (used + s > size) {
         afl_coverage_off();
         assert(getrandom(b, s, 0));
