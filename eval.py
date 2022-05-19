@@ -4,6 +4,7 @@ import glob
 import shutil
 import subprocess
 import argparse
+import itertools
 from pathlib import Path
 from statistics import mean
 
@@ -16,6 +17,7 @@ agamotto_alias = {
 }
 
 targets = ["ath9k", "ath10k_pci", "rtwpci", "8139cp", "atlantic", "stmmac_pci", "snic"]
+targets += ["ar5523", "mwifiex_usb", "rsi_usb"]
 harnesses = ["afl-forkserver-harness", "afl-delayed-forkserver-harness", "afl-harness"]
 
 data_dir = Path(f'/data/{os.environ.get("USER")}/lkl')
@@ -35,7 +37,7 @@ while count < max_iter:
             print("Clean up exisitng data")
             shutil.rmtree(data_dir / str(count))
         else:
-            print("exisitng data")
+            print(f"exisitng data in {data_dir}")
             continue
 
     subprocess.check_call('./stats.sh')
@@ -62,7 +64,15 @@ for t in targets:
             elif 'execs_done' in line:
                 execs += int(line.split(':')[1][1:])
     # print(f"{t}: {execs/time}")
-    agamotto_map[t] = execs/time
+    if time == 0:
+        for f in glob.glob(f'/data/{USER}/agamotto-usb/{alias}-*/{alias}-*.log'):
+            inf = open(f)
+            for line in reversed(inf.readlines()):
+                if 'executed' in line:
+                    execs += int(line.split(' ')[5][:-1])
+                    time += 3600*16
+                    break
+    agamotto_map[t] = execs/time if time else 1
 
 result_map = {}
 count = 0
@@ -98,5 +108,5 @@ for t in targets:
             avg = 'x'
         print(avg, end='')
     print(' & ', end='')
-    print(round(avg/agamotto_map[t]), end='')
+    print(round(avg/agamotto_map[t]) if avg != 'x' else 'x', end='')
     print('\\\\\\hline')
