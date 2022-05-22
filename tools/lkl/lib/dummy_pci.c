@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -19,6 +20,7 @@
 #include "memwatcher.h"
 #include "fuzz_input.h"
 
+static int dummy_pci_irq = -1;
 
 short pci_vender = 0;
 short pci_device = 0;
@@ -53,6 +55,19 @@ void print_trace (void)
   }
 
   free (strings);
+}
+
+// TODO: A better interrupt scheduling method
+#define INT_FREQ 75
+void may_interrupt(void) {
+	int ret;
+	static size_t io_count = 0;
+	if ((++io_count % INT_FREQ) == 0) {
+		assert(dummy_pci_irq != -1 && "Interrupt line for dummy_pci device not set");
+		fprintf(stderr, "Issue interrupt %d. io count: %ld\n", dummy_pci_irq, io_count);
+		ret = lkl_trigger_irq(dummy_pci_irq);
+		fprintf(stderr, "lkl_trigger_irq returns %d\n", ret);
+	}
 }
 
 struct lkl_pci_dev {
@@ -122,6 +137,7 @@ static void dummy_int_thread(void *_dev)
 
 static int dummy_pci_irq_init(struct lkl_pci_dev *dev, int irq)
 {
+	dummy_pci_irq = irq;
 	// dev->int_thread =
 	// 	lkl_host_ops.thread_create(dummy_int_thread, (void *)dev);
 
@@ -137,6 +153,7 @@ static const char* dma_type(int consistent) {
 }
 
 static void consistent_dma_read(void* addr, uint64_t offset, uint8_t size) {
+	may_interrupt();
 	switch (size) {
 	case 8:
 		*(uint64_t *)addr = (uint64_t)get_qword();
@@ -247,7 +264,7 @@ static int dummy_pci_write(struct lkl_pci_dev *dev, int where, int size,
 
 static int pci_resource_read(void *data, int offset, void *res, int size)
 {
-
+	may_interrupt();
 	switch (size) {
 	case 8:
 		*(uint64_t *)res = (uint64_t)get_qword();
@@ -278,6 +295,7 @@ static int pci_resource_read(void *data, int offset, void *res, int size)
 
 static int pci_resource_write(void *data, int offset, void *res, int size)
 {
+	may_interrupt();
 	void *addr = data + offset;
 
 	switch (size) {
