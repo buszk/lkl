@@ -137,7 +137,7 @@ CFLAGS_AFLCOV = \
 endif
 CFLAGS_AFLCOV +=  -g -integrated-as \
 		-Xclang -load -Xclang $(HOME)/Workspace/git/AFLplusplus/./afl-llvm-pass.so \
-		-Xclang -load -Xclang $(HOME)/Workspace/git/lkl/tools/lkl/instrumentation/libPluginExample.so
+		-Xclang -load -Xclang $(HOME)/Workspace/git/lkl/tools/lkl/instrumentation/libDriverModifier.so
 
 _c_flags += $(if $(patsubst n%,, \
 		$(AFLCOV_$(basetarget).o)$(AFLCOV)), \

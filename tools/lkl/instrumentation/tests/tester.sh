@@ -4,7 +4,7 @@ DIR=$(dirname $0)
 RC=0
 for test in $DIR/match_*.c; do
     clang -Xclang -load \
-      -Xclang $DIR/../libPluginExample.so \
+      -Xclang $DIR/../libDriverModifier.so \
       -Wall -c $test &>/dev/null
     if grep setjmp $test.mod &>/dev/null; then
         echo "Okay   ...  $test"
@@ -17,7 +17,7 @@ done
 
 for test in $DIR/no_match_*.c; do
     clang -Xclang -load \
-      -Xclang $DIR/../libPluginExample.so \
+      -Xclang $DIR/../libDriverModifier.so \
       -Wall -c $test &>/dev/null
     if grep setjmp $test.mod &>/dev/null; then
         echo "Failed ...  $test"

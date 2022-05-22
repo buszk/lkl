@@ -71,13 +71,13 @@ inline void compile(clang::CompilerInstance *CI,
   FileMemoryBuffer.release();
 }
 
-class ExampleVisitor : public RecursiveASTVisitor<ExampleVisitor> {
+class ModifierVisitor : public RecursiveASTVisitor<ModifierVisitor> {
 private:
     ASTContext *astContext; // used for getting additional AST info
     bool isInt;
 
 public:
-    explicit ExampleVisitor(CompilerInstance *CI) 
+    explicit ModifierVisitor(CompilerInstance *CI) 
       : astContext(&(CI->getASTContext())), // initialize private members
       isInt(false)
     {
@@ -130,10 +130,6 @@ public:
         // assert(false && "no previous statement found");
         return nullptr;
     }
-
-    // SourceLocation getIfCondLoc(const IfStmt *i) {
-
-    // }
 
     string FindRV(const ReturnStmt *ret) {
         if (!ret->getRetValue())
@@ -369,43 +365,32 @@ public:
 
 
 
-class ExampleASTConsumer : public ASTConsumer {
+class ModifierASTConsumer : public ASTConsumer {
 private:
-    ExampleVisitor *visitor; // doesn't have to be private
+    ModifierVisitor *visitor; // doesn't have to be private
 
 public:
     // override the constructor in order to pass CI
-    explicit ExampleASTConsumer(CompilerInstance *CI)
-        : visitor(new ExampleVisitor(CI)) // initialize the visitor
+    explicit ModifierASTConsumer(CompilerInstance *CI)
+        : visitor(new ModifierVisitor(CI)) // initialize the visitor
     { }
 
-    // override this to call our ExampleVisitor on the entire source file
+    // override this to call our ModifierVisitor on the entire source file
     virtual void HandleTranslationUnit(ASTContext &Context) {
         /* we can use ASTContext to get the TranslationUnitDecl, which is
              a single Decl that collectively represents the entire source file */
         visitor->TraverseDecl(Context.getTranslationUnitDecl());
     }
 
-/*
-    // override this to call our ExampleVisitor on each top-level Decl
-    virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
-        // a DeclGroupRef may have multiple Decls, so we iterate through each one
-        for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; i++) {
-            Decl *D = *i;    
-            visitor->TraverseDecl(D); // recursively visit each AST node in Decl "D"
-        }
-        return true;
-    }
-*/
 };
 
-class PluginExampleAction : public PluginASTAction {
+class DriverModifierAction : public PluginASTAction {
 protected:
     // this gets called by Clang when it invokes our Plugin
     std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, StringRef file) {
         _CI = &CI;
         _FileName = file.str();
-        return std::unique_ptr<ASTConsumer>(new ExampleASTConsumer(&CI));
+        return std::unique_ptr<ASTConsumer>(new ModifierASTConsumer(&CI));
     }
 
     // implement this function if you want to parse custom cmd-line args
@@ -438,4 +423,4 @@ private:
 };
 
 
-static FrontendPluginRegistry::Add<PluginExampleAction> X("-example-plugin", "simple Plugin example");
+static FrontendPluginRegistry::Add<DriverModifierAction> X("-driver-mod-plugin", "Plugin to modify device driver code on the flight");

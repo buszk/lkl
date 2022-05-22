@@ -3,9 +3,9 @@ INCLUDES=-I. -I../staticlib -I../metapagetable
 CFLAGS=-c -Werror -Wall -std=c++0x -g `llvm-config --cxxflags` -O0 -fPIC
 LDFLAGS=-g -shared
 
-all: libPluginExample.so test
+all: libDriverModifier.so test
 
-test: libPluginExample.so
+test: libDriverModifier.so
 	tests/tester.sh
 
 lib%.so: %.o
